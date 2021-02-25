@@ -14,12 +14,12 @@ import pandas as pd
 import datetime as dt
 
 # scraping modules
-import twitterscraper as ts
+#import twitterscraper as ts check if this doesnt send some weird shit somewhere
 import yfinance as yf
 
 class scrap():
 
-    def __init__(self, stockHandle, ndays, method="All", period="1m"):
+    def __init__(self, stockHandle, ndays=7, method="All", period="1m"):
         # constructor calls methods specified by the user 
         # modyfies data and returns object with:
         # self.data => pandas dataframe with stock market data
@@ -55,11 +55,24 @@ class scrap():
         stockTicket = yf.Ticker(stockHandle)
 
         # scrape relevant data
-        self.data = stockTicket.history(start=(dt.date.today() - dt.timedelta(days=ndays)), end=dt.date.today(), interval=period)
+        print("Status: scraping last " + str(ndays) + " day(s)")
+        self.datadays = stockTicket.history(start=(dt.date.today() - dt.timedelta(days=ndays)), end=dt.date.today(), interval=period)
+        self.datadays.reset_index(inplace=True)
+        # Calculate elapsed days
+        base_date = self.datadays['Datetime'][0]
+        self.datadays['day_num'] = self.datadays['Datetime'].map(lambda date:(date - base_date).days)
+
+        print("Status: scraping last year")
+        self.datayear = stockTicket.history(start=(dt.date.today() - dt.timedelta(days=365)), end=dt.date.today(), interval="1d")
+        self.datayear.reset_index(inplace=True)
+        base_date = self.datayear['Date'][0]
+        self.datayear['day_num'] = self.datayear['Date'].map(lambda date:(date - base_date).days)
+        
         self.info = stockTicket.info
 
+
         print("Status: completed")
-        print("data saved as .data, .info")
+        print("data saved as .datadays, .datayear, and .info")
         return
 
 
