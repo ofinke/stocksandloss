@@ -85,10 +85,10 @@ def find_crosses(x, col1=None, col2=None):
     for i, val in enumerate(res):
         if val == 1:
             if int(col1[2:]) < int(col2[2:]):
-                nextDeath = True # first cross is death cross
+                nextDeath = False # first cross is golden cross
                 break
             else:
-                nextDeath = False # first cross is golden cross
+                nextDeath = True # first cross is death cross
                 break
     # delete 
     # nextDeath oscillates which cross shoudl follow
@@ -110,7 +110,7 @@ def find_crosses(x, col1=None, col2=None):
 def main():
     # import only for this function
     import scraper as sc
-    stock = sc.scrap(stockHandle="TSLA")
+    stock = sc.scrap(stockHandle="RKT")
 
     # basic_plot(stock.data, stock.info)
     stock.data = mov_average(stock.data, 5)
