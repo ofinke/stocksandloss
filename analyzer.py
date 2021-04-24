@@ -6,6 +6,9 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+import scraper as sc
+import datetime as dt
+import copy
 # import plotly.graph_objects as go
 # there is a scraper.py import in testing runtime (it's not required anywhere else)!
 
@@ -14,11 +17,10 @@ def stock_plot(d, i):
     # d = pandas dataframe, i = stock information
     # FIGURE DEFINITION
     fig, ax = plt.subplots(figsize=(21,8))
-    fig.suptitle("Last 3 weeks of " + i["longName"])
     # PLOTS
     # basic open, close etc.
     ax.plot(d["Open"], color="cornflowerblue")
-    ax.plot(d["Close"], color="cornflowerblue")
+    ax.plot(d["Close"], color="cornflowerblue", label="close")
     ax.plot(d["High"], color="silver")
     ax.plot(d["Low"], color="silver")
     # moving averages
@@ -106,19 +108,30 @@ def find_crosses(x, col1=None, col2=None):
     x["dcross"] = dcross
     return x
 
+# VOLUME COLOR
+# sort volume value by color, red = open < close, green = opposite
+# create columns "VolumeR" and "VolumeG", copy from "Volume" and NaN values which dont correspond
+def color_volume(x):
+    vg = copy.copy(x["Volume"])
+    vr = copy.copy(x["Volume"])
+
+    for row in x.itertuples():
+        # index 2 = open, 4 = close
+        if row[2] > row[4]:
+            vr[row[0]] = np.NaN
+        else:
+            vg[row[0]] = np.NaN
+
+    x["VolumeG"] = vg
+    x["VolumeR"] = vr
+
+    return x
+
 # TESTING RUNTIME
 def main():
     # import only for this function
-    import scraper as sc
-    stock = sc.scrap(stockHandle="RKT")
-
-    # basic_plot(stock.data, stock.info)
-    stock.data = mov_average(stock.data, 5)
-    stock.data = mov_average(stock.data, 50)
-    stock.data = mov_average(stock.data, 100)
-    # analyzed_plot(stock.data, stock.info)
-    stock.data = find_crosses(stock.data, col1="MA50", col2="MA100")
-    stock_plot(stock.data, stock.info)
+    stock, info = sc.scrapstockdata(stockHandle="RKT", d=2, i="5m", ed=dt.date.today())
+    color_volume(stock)
 
     return
 
