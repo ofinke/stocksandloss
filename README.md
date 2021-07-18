@@ -24,7 +24,7 @@ Outputs
 class saves scraped data into csv file named "ticker"_daily.csv, when called again, it opens data from this csv file and updates them according to dates.
 
 ### Known issues
-* Finish updating data correctly. There are some things I'm not happy about. The scraped downloads last data from day before (even if the market is already closed), which causes some issues during the weekend. For example, if I say the scraper to download data from Friday 16. to Sunday 18., it downloads Thursday 17. and Friday 18. 
+* Finish updating data correctly. There are some things I'm not happy about. The scraped downloads last data from the day before (even if the market is already closed today), which causes some issues during the weekend. For example, if I say the scraper to download data from Friday 16. to Sunday 18., it downloads Thursday 15. and Friday 16. 
 
 # Indicators
 
@@ -67,3 +67,6 @@ Output:
 
 ## stoch()
 Stochastic Oscillator, not yet implemented
+
+## mcstoch()
+Color indicator based on combination of macd and stochastic oscillator data, not yet implemnted
