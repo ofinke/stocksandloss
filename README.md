@@ -30,6 +30,9 @@ class saves scraped data into csv file named "ticker"_daily.csv, when called aga
 
 File containing several functions for calculating basic technical analysis indicators
 
+### Known issues
+* For some reason I didn't manage to plot results from mcstoch in the testing routine, mostly as I'm lazy, but the calculation should be good.
+
 ## sma()
 calculates simple moving average
 
@@ -63,10 +66,26 @@ Inputs:
 * price: string which corresponds to column to use from x, default "Close"
 
 Output:
-* result: DataFrame with "Date, "macd", "signal" and "histogram" columns
+* result: DataFrame with "Date", "macd", "signal" and "histogram" columns
 
 ## stoch()
-Stochastic Oscillator, not yet implemented
+Stochastic Oscillator, copied from https://www.learnpythonwithrune.org/pandas-calculate-the-stochastic-oscillator-indicator-for-stocks/
+
+Inputs:
+* x: DataFrame with stock data
+* period: period for data comparison, default = 14
+* sk: smoothing of k line, default = 2
+* sd: smoothing of d line, default = 4
+
+Output:
+* result: DataFrame with "Date", "macd", "signal" and "histogram" columns
 
 ## mcstoch()
 Color indicator based on combination of macd and stochastic oscillator data, not yet implemnted
+
+Inputs:
+* x: DataFrame with stock data
+* same settings as for macd and stochastic oscillator
+
+output:
+* result: DataFrame with "Date", "green", "blue", "yellow" and "red" columns (colors are represented as integers 1 and 0)
