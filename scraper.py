@@ -40,7 +40,7 @@ class stock_daily():
         # (update in the future to scrape from last bussiness day)
         self.scrap(startdate=dt.date.today()-dt.timedelta(days=365), enddate=dt.date.today())
         # save data into csv
-        self.scraped.to_csv(self.ticker + "_daily.csv")
+        self.scraped.to_csv(self.ticker + "_daily.csv", index=False)
         # save data into self.data
         self.data = self.scraped
         del self.scraped
