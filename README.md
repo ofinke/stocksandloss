@@ -1,3 +1,5 @@
+THIS IS MY ORIGINAL EXPERIMENTS WITH DOWNLOADING AND WORKING WITH STOCK DATA, NO LONGER UPDATED.
+
 # stocksandloss
  Scrapping and analysis of stocks
 
