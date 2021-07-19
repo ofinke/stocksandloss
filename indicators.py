@@ -45,7 +45,7 @@ def macd(x, fl=12, sl=26, sig=9, price="Close"):
     return result
 
 # STOCHASTIC OSCILLATOR
-def stoch(x, period=14, sk=1, sd=3):
+def stoch(x, period=14, sk=2, sd=4):
     result = x.loc[:, ["Date"]]
     
     high = x["High"].rolling(period).max()
@@ -57,7 +57,7 @@ def stoch(x, period=14, sk=1, sd=3):
     return result
 
 # MCSTOCH
-def mcstoch(x, fl=12, sl=26, sig=9, price="Close", period=14, sk=1, sd=3):
+def mcstoch(x, fl=12, sl=26, sig=9, price="Close", period=14, sk=2, sd=4):
     result = x.loc[:, ["Date"]]
 
     md = macd(x, fl=fl, sl=sl, sig=sig, price=price)
@@ -107,21 +107,24 @@ def main():
     ax[0].plot(stock.data["Close"], label="Close")
     ax[0].plot(x["EMA"], label="EMA26")
     ax[0].plot(y["SMA"], label="SMA50")
+    # ax[0].set(xlim=(200, 250))
     ax[0].legend()
     # plot macd
     ax[1].plot(md["macd"], label="macd")
     ax[1].plot(md["signal"], label="signal")
+    # ax[1].set(xlim=(200, 250))
     ax[1].legend()
     # plot stochastic oscillator
     ax[2].plot(so["k"], label="k")
     ax[2].plot(so["d"], label="d")
+    # ax[2].set(xlim=(200, 250))
     ax[2].legend()
-    plt.show()
     # plot McStoch
-    ax[3].plot(ms["green"], c="green")
-    ax[3].plot(ms["blue"], c="blue")
-    ax[3].plot(ms["yellow"], c="yellow")
-    ax[3].plot(ms["red"], c="red")
+    ax[3].scatter(ms.index, ms["green"], color="green", marker="1", alpha=0.5)
+    ax[3].scatter(ms.index, ms["blue"], color="blue", marker="1", alpha=0.5)
+    ax[3].scatter(ms.index, ms["yellow"], color="yellow", marker="1", alpha=0.5)
+    ax[3].scatter(ms.index, ms["red"], color="red", marker="1", alpha=0.5)
+    ax[3].set(ylim=(0.9, 1.1))
     plt.show()
     return
 
