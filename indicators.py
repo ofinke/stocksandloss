@@ -18,11 +18,8 @@ def sma(x, w, price="Close"):
     # x - dataframe from scraper
     # w - size of sma
     # price - strong, name of which column to use, default "Close"
-    res = np.convolve(x[price], np.ones(w), 'valid') / w
-    ma = np.empty(len(x[price])-len(res))
-    ma[:] = np.NaN
     result = x.loc[:,["Date"]]
-    result["SMA"] = np.insert(res, 0, ma, axis=0)
+    result["SMA"] = x[price].rolling(w).mean()
     return result
 
 # EXPONENTIAL MOVING AVERAGE
@@ -51,7 +48,7 @@ def stoch(x, period=14, sk=2, sd=4):
     high = x["High"].rolling(period).max()
     low = x["Low"].rolling(period).min()
 
-    result["k"] = (x["Close"] - low)*100/(high - low).rolling(sk).mean()
+    result["k"] = (((x["Close"] - low)*100)/(high - low)).rolling(sk).mean()
     result["d"] = result["k"].rolling(sd).mean()
     
     return result
