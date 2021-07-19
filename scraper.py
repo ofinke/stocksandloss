@@ -32,6 +32,7 @@ class stock_daily():
         st = yf.Ticker(self.ticker)
         # download daily data from startdate to enddate withou splits and dividends
         self.scraped = st.history(start=startdate, end=enddate, interval="1d", actions=False)
+        self.scraped = self.scraped.reset_index().rename(columns={self.scraped.index.name:"Date"})
         return
 
     def createcsv(self):
