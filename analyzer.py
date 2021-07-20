@@ -46,6 +46,10 @@ class Analyzer:
         sellSignal = self.methodSell_Simple()
     else:
         print('This method is not implemented')    
-    sorted_signals = self.signalSorter(buySignal,sellSignal)    
-    print(sorted_signals)
+    sorted_signals = self.signalSorter(buySignal,sellSignal)   
+    Nbuys = np.sum(sorted_signals["buy"]).astype(int)
+    zero_data = np.zeros(shape=(Nbuys,10)) 
+    outputFrame = pd.DataFrame(zero_data, columns=["buy_date","buy_price","buy_value","sell_date","sell_price","sell_value","comission","good_trade?","profit[%]","profit[$]"])
+    print(outputFrame)
+    return 
 
