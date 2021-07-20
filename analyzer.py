@@ -19,14 +19,15 @@ class Analyzer:
     return buySignal
   
   def methodBuy_Mcstoch_ut1(self):
-    # McStoch 1 buy signal in uptrend 
+    # McStoch 1 buy signal in uptrend (macd signal > 0)
     # Previous day red and today green
     buySignal = np.zeros(self.data["Close"].size, dtype=int)
     # calculate mcstoch
     mcs = indicators.mcstoch(self.data, fl=12, sl=26, sig=9, price="Close", period=14, sk=2, sd=4)
+    macd = indicators.macd(self.data, fl=12, sl=26, sig=9, price="Close")
     # evaluate the signal
-    buySignal = mcs["green"].gt(mcs["red"]).astype("int").to_numpy()
-    return buySignal
+    buySignal = (mcs["green"].gt(mcs["red"])) & (macd["signal"] > 0)
+    return buySignal.astype("int").to_numpy()
 
   def methodBuy_Mcstoch_ut2(self):
     # McStoch 2 buy signal in uptrend
@@ -38,14 +39,15 @@ class Analyzer:
     return buySignal
   
   def methodBuy_Mcstoch_ut3(self):
-    # McStoch 3 buy signal in uptrend
+    # McStoch 3 buy signal in uptrend (macd signal > 0)
     # previous day blue, today green 
     buySignal = np.zeros(self.data["Close"].size, dtype=int)
     # calculate mcstoch
     mcs = indicators.mcstoch(self.data, fl=12, sl=26, sig=9, price="Close", period=14, sk=2, sd=4)
+    macd = indicators.macd(self.data, fl=12, sl=26, sig=9, price="Close")
     # evaluate the signal
-    buySignal = mcs["green"].gt(mcs["blue"]).astype("int").to_numpy()
-    return buySignal
+    buySignal = (mcs["green"].gt(mcs["blue"])) & (macd["signal"] > 0)
+    return buySignal.astype("int").to_numpy()
 
   def methodBuy_Mcstoch_ut4(self):
     # McStoch 4 buy signal in uptrend
@@ -56,6 +58,13 @@ class Analyzer:
     
     return buySignal
   
+  def methodSell_Mcstoch(self):
+    # McStoch sell signal
+    # red day is a sell signal
+    # calculate mcstoch
+    mcs = indicators.mcstoch(self.data, fl=12, sl=26, sig=9, price="Close", period=14, sk=2, sd=4)
+    return mcs["red"].to_numpy()
+
   def methodSell_Simple(self): #first trading strategy for generating buy/sell signals, todo: name the methods
     sellSignal = np.zeros(self.data["Close"].size, dtype=int)
     #signal = macd.ewm(span=sig, adjust=False).mean()
