@@ -3,6 +3,7 @@
 #then the final method analyzes the profitability of the buy/sell signals
 import indicators
 import numpy as np
+import pandas as pd
 class Analyzer:
 
   def __init__(self,*,ticker ,data):
@@ -23,6 +24,19 @@ class Analyzer:
     zero_crossings = np.add(np.where(np.diff(np.sign(macd["signal"]))<0),1) #calculates indexes where macd signal crossed zero to positive, +1 to get the correct day
     sellSignal[zero_crossings[0]] = 1
     return sellSignal
+  def signalSorter(self,buySignal,sellSignal):
+    helper = 0
+    zero_data = np.zeros(shape=(len(buySignal),2))
+    d = pd.DataFrame(zero_data, columns=["buy","sell"])
+    for j in range(0,len(buySignal)):
+      if buySignal[j]==1&helper==0:
+        d["buy"][j]=1
+        helper = 1
+      elif sellSignal[j]==1&helper==1: 
+        d["sell"][j]=1
+        helper = 0
+    return d
+    
   def profit(self,*,buyMethodName,sellMethodName,capitalForEachTrade):   #method for calculating profit, inputs: how much money is spent on each trade and the name of the trading strategy
     if buyMethodName == 'Simple':
         buySignal = self.methodBuy_Simple()
@@ -32,6 +46,6 @@ class Analyzer:
         sellSignal = self.methodSell_Simple()
     else:
         print('This method is not implemented')    
-    for j in range(0,len(buySignal)):
-        print(len(buySignal),j)
+    sorted_signals = self.signalSorter(buySignal,sellSignal)    
+    print(sorted_signals)
 
