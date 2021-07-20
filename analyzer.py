@@ -11,29 +11,27 @@ class Analyzer:
 
   def methodBuy_Simple(self): #first trading strategy for generating buy/sell signals, todo: name the methods
     buySignal = np.zeros(self.data["Close"].size, dtype=int)
-    self.result = self.data.loc[:, ["Date"]]
-    fl=12
-    sl=26
-    sig=9
-    fastema = self.data["Close"].ewm(span=fl, adjust=False).mean()
-    slowema = self.data["Close"].ewm(span=sl, adjust=False).mean()
-    macd = fastema - slowema
-    signal = macd.ewm(span=sig, adjust=False).mean()
-    zero_crossings = np.add(np.where(np.diff(np.sign(signal))>0),1) #calculates indexes where macd signal crossed zero to positive
-    buySignal[zero_crossings[0]] = 1
+    #signal = macd.ewm(span=sig, adjust=False).mean()
+    macd = indicators.macd(self.data, 12, 26, 9, "Close")
+    zero_crossings = np.add(np.where(np.diff(np.sign(macd["signal"]))>0),1) #calculates indexes where macd signal crossed zero to positive, +1 to get the correct day
+    buySignal[zero_crossings[0]] = 1 
     return buySignal
   def methodSell_Simple(self): #first trading strategy for generating buy/sell signals, todo: name the methods
     sellSignal = np.zeros(self.data["Close"].size, dtype=int)
-    self.result = self.data.loc[:, ["Date"]]
-    fl=12
-    sl=26
-    sig=9
-    fastema = self.data["Close"].ewm(span=fl, adjust=False).mean()
-    slowema = self.data["Close"].ewm(span=sl, adjust=False).mean()
-    macd = fastema - slowema
-    signal = macd.ewm(span=sig, adjust=False).mean()
-    zero_crossings = np.add(np.where(np.diff(np.sign(signal))<0),1) #calculates indexes where macd signal crossed zero to negative
+    #signal = macd.ewm(span=sig, adjust=False).mean()
+    macd = indicators.macd(self.data, 12, 26, 9, "Close")
+    zero_crossings = np.add(np.where(np.diff(np.sign(macd["signal"]))<0),1) #calculates indexes where macd signal crossed zero to positive, +1 to get the correct day
     sellSignal[zero_crossings[0]] = 1
     return sellSignal
-  def profit(self,*,methodName,capitalForEachTrade):   #method for calculating profit, inputs: how much money is spent on each trade and the name of the trading strategy
-    print("Method not yet implemented")
+  def profit(self,*,buyMethodName,sellMethodName,capitalForEachTrade):   #method for calculating profit, inputs: how much money is spent on each trade and the name of the trading strategy
+    if buyMethodName == 'Simple':
+        buySignal = self.methodBuy_Simple()
+    else:
+        print('This method is not impplemented')    
+    if sellMethodName == 'Simple':    
+        sellSignal = self.methodSell_Simple()
+    else:
+        print('This method is not implemented')    
+    for j in range(0,len(buySignal)):
+        print(len(buySignal),j)
+

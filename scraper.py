@@ -83,6 +83,7 @@ class stock_daily():
                 print("Data scraping failed, passing old saved data")
                 self.data = self.loaded 
         del self.loaded
+
         return
 
 # RUNTIME
@@ -96,6 +97,7 @@ def main():
     # scraped = st.history(period="1y", interval="1d", actions=False)
     # scraped = scraped.reset_index().rename(columns={scraped.index.name:"Date"})
     # print(scraped.iloc[-1, 0])
+
     return
 
 if __name__ == "__main__":
