@@ -116,7 +116,7 @@ class Analyzer:
     outputFrame["sell_value"] = outputFrame["position"]*outputFrame["sell_price"]
     outputFrame["comission"] = comission
     outputFrame.loc[outputFrame["sell_value"]>outputFrame["buy_value"] ,"good_trade?"] = 1
-    outputFrame["profit[$]"] = outputFrame["sell_value"]-outputFrame["buy_value"]
-    outputFrame["profit[%]"] = outputFrame["profit[$]"]/outputFrame["buy_value"]
+    outputFrame["profit[$]"] = outputFrame["sell_value"]-outputFrame["buy_value"]-outputFrame["comission"]
+    outputFrame["profit[%]"] = 100*outputFrame["profit[$]"]/outputFrame["buy_value"]
     return outputFrame
 
