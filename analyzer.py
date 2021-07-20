@@ -90,15 +90,33 @@ class Analyzer:
         helper = 0
     return d
     
-  def profit(self,*,buyMethodName,sellMethodName,capitalForEachTrade):   #method for calculating profit, inputs: how much money is spent on each trade and the name of the trading strategy
+  def profit(self,*,buyMethodName,sellMethodName,capitalForEachTrade,comission):   #method for calculating profit, inputs: how much money is spent on each trade and the name of the trading strategy
     if buyMethodName == 'Simple':
         buySignal = self.methodBuy_Simple()
+    elif buyMethodName == 'Mcstoch_ut1':
+        buySignal = self.methodBuy_Mcstoch_ut1()
     else:
         print('This method is not impplemented')    
     if sellMethodName == 'Simple':    
         sellSignal = self.methodSell_Simple()
+    elif sellMethodName == 'Mcstoch':
+        sellSignal = self.methodSell_Mcstoch()    
     else:
         print('This method is not implemented')    
-    sorted_signals = self.signalSorter(buySignal,sellSignal)    
-    print(sorted_signals)
+    sorted_signals = self.signalSorter(buySignal,sellSignal)   
+    Nbuys = np.sum(sorted_signals["buy"]).astype(int)
+    zero_data = np.zeros(shape=(Nbuys,11)) 
+    outputFrame = pd.DataFrame(zero_data, columns=["buy_date","buy_price","buy_value","position","sell_date","sell_price","sell_value","comission","good_trade?","profit[%]","profit[$]"])
+    outputFrame["buy_date"] = self.data.loc[np.where(sorted_signals["buy"]==1)[0],"Date"].reset_index(drop=True)
+    outputFrame["buy_price"] = self.data.loc[np.where(sorted_signals["buy"]==1)[0],"Close"].reset_index(drop=True)
+    outputFrame["sell_date"] = self.data.loc[np.where(sorted_signals["sell"]==1)[0],"Date"].reset_index(drop=True)
+    outputFrame["sell_price"] = self.data.loc[np.where(sorted_signals["sell"]==1)[0],"Close"].reset_index(drop=True)
+    outputFrame["buy_value"] = capitalForEachTrade
+    outputFrame["position"] = outputFrame["buy_value"]/outputFrame["buy_price"]
+    outputFrame["sell_value"] = outputFrame["position"]*outputFrame["sell_price"]
+    outputFrame["comission"] = comission
+    outputFrame.loc[outputFrame["sell_value"]>outputFrame["buy_value"] ,"good_trade?"] = 1
+    outputFrame["profit[$]"] = outputFrame["sell_value"]-outputFrame["buy_value"]
+    outputFrame["profit[%]"] = outputFrame["profit[$]"]/outputFrame["buy_value"]
+    return outputFrame
 
