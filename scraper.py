@@ -6,7 +6,6 @@
 # outputs:
 #   self.data: pandas dataframe with 1 year of daily data
 
-
 # IMPORTS
 import pandas as pd
 import datetime as dt
