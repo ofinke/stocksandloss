@@ -4,7 +4,7 @@ import numpy as np
 ticker_name = "AAPL"
 anal = Analyzer(ticker=ticker_name,data=stock_daily(ticker_name, save=False).data)
 
-anal.strategy(buyStrategy=['Mcstoch_ut1','Mcstoch_ut3'],sellStrategy=['Mcstoch'],stopLoss=False)
+anal.strategy(buyStrategy=['Mcstoch_ut1','Mcstoch_ut2', 'Mcstoch_ut3', 'Mcstoch_ut4'],sellStrategy=['Mcstoch'],stopLoss=False)
 tradeSummary = anal.profit(capitalForEachTrade=400,comission=2)
 profitAbsolute = tradeSummary["profit[$]"].sum()
 profitRelative = tradeSummary["profit[%]"].sum()
