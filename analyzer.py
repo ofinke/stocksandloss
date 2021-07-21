@@ -5,7 +5,7 @@ import indicators
 import numpy as np
 import pandas as pd
 class Analyzer:
-
+  trades = pd.DataFrame()
   def __init__(self,*,ticker ,data):
     self.data = data
     self.ticker = ticker
@@ -86,50 +86,65 @@ class Analyzer:
   def signalSorter(self,buySignal,sellSignal):
     helper = 0
     zero_data = np.zeros(shape=(len(buySignal),2))
-    d = pd.DataFrame(zero_data, columns=["buy","sell"])
-    for j in range(0,len(buySignal)):
+    Buy_number = 0
+    d = pd.DataFrame(zero_data, columns=["Buy","Sell"])
+    for j in range(0,len(buySignal)): #we go through the whole buySignal vector
       if buySignal[j]==1 and helper==0:
-        d["buy"][j]=1
+        d["Buy"][j]=1
         helper = 1
-      elif sellSignal[j]==1 and helper==1: 
-        d["sell"][j]=1
+        Buy_number += 1       
+      elif sellSignal[Buy_number-1,j]==1 and helper==1: 
+        d["Sell"][j]=1
         helper = 0
     if helper == 1:
       d = d[:-1]
     return d
+  def strategy(self,*,buyStrategy,sellStrategy,stopLoss):
+    buyHelper = np.zeros(shape=(len(self.data["Close"]),1))
+    for j in range(len(buyStrategy)): #this cycle will load all the signals from the different buy stragies and join them to one signal vector
+      if buyStrategy[j] == 'Simple':
+          buyHelper = self.methodBuy_Simple()
+      elif buyStrategy[j] == 'Mcstoch_ut1':
+          buyHelper = self.methodBuy_Mcstoch_ut1()
+      elif buyStrategy[j] == 'Mcstoch_ut3':
+          buyHelper = self.methodBuy_Mcstoch_ut3()    
+      else:
+          print('This buy method is not impplemented')                 
+      if j==0:
+        buySignal = buyHelper
+      else:  
+        buySignal = self.signalOr(buyHelper, buySignal)
+    #for N buy signals, create N sell vectors where Nth column will be the sell signal for Nth buy signal, some sell methods that are independent will have copied columns
+    sellHelper = np.zeros(shape=(len(self.data["Close"]),1))
+    for j in range(len(sellStrategy)): #this cycle will load all the signals from the different sell stragies and join them to one signal vector
+      if sellStrategy[j] == 'Simple':
+          sellHelper = self.methodSell_Simple()
+          sellHelper = np.repeat([sellHelper,], repeats=np.sum(buySignal), axis=0)
+      elif sellStrategy[j] == 'Mcstoch':
+          sellHelper= self.methodSell_Mcstoch()
+          sellHelper = np.repeat([sellHelper,], repeats=np.sum(buySignal), axis=0)
+      else:
+          print('This buy method is not implemented')
+      if j==0:
+        sellSignal = sellHelper
+      else:  
+        sellSignal = self.signalOr(sellHelper, sellSignal)
     
-  def profit(self,*,buyMethodName,sellMethodName,capitalForEachTrade,comission):   #method for calculating profit, inputs: how much money is spent on each trade and the name of the trading strategy
-    if buyMethodName == 'Simple':
-        buySignal = self.methodBuy_Simple()
-        if sellMethodName == 'Simple':    
-          sellSignal = self.methodSell_Simple()
-          sorted_signals = self.signalSorter(buySignal,sellSignal) 
-          # trades["buy_date","buy_price","sell_date","sell_price"] = 
-        else:
-          print('This combination of methods is not impplemented') 
-    elif buyMethodName == 'Mcstoch_ut1':
-        buy1 = self.methodBuy_Mcstoch_ut1()
-        buy2 = self.methodBuy_Mcstoch_ut3() 
-        buySignal = self.signalOr(buy1, buy2)
-        if sellMethodName == 'Mcstoch':
-          sellSignal = self.methodSell_Mcstoch()
-          sorted_signals = self.signalSorter(buySignal,sellSignal) 
-          # trades["buy_date","buy_price","sell_date","sell_price"] = 
-        else:
-          print('This combination of methods is not implemented')     
-    else:
-        print('This buy method is not impplemented')    
-    #from this point, trades dataframe holds the buy and sell signals for each trade together with the buying and selling price
-
-
-
-    Nbuys = np.sum(self.trades["buy"]).astype(int)
-    zero_data = np.zeros(shape=(Nbuys,11)) 
-    outputFrame = pd.DataFrame(zero_data, columns=["buy_date","buy_price","buy_value","position","sell_date","sell_price","sell_value","comission","good_trade?","profit[%]","profit[$]"])
-    outputFrame["buy_date"] = self.data.loc[np.where(self.trades["buy"]==1)[0],"Date"].reset_index(drop=True)
-    outputFrame["buy_price"] = self.data.loc[np.where(self.trades["buy"]==1)[0],"Close"].reset_index(drop=True)
-    outputFrame["sell_date"] = self.data.loc[np.where(self.trades["sell"]==1)[0],"Date"].reset_index(drop=True)
-    outputFrame["sell_price"] = self.data.loc[np.where(self.trades["sell"]==1)[0],"Close"].reset_index(drop=True)
+    sorted_signals = self.signalSorter(buySignal,sellSignal)  
+    self.trades = pd.DataFrame(np.zeros(shape=(np.sum(buySignal),4)), columns=["Buy date","Buy price","Sell Date","Sell price"])
+    self.trades["Buy date"] = self.data.loc[np.where(sorted_signals["Buy"]==1)[0],"Date"].reset_index(drop=True)
+    self.trades["Buy price"] = self.data.loc[np.where(sorted_signals["Buy"]==1)[0],"Close"].reset_index(drop=True)
+    self.trades["Sell date"] = self.data.loc[np.where(sorted_signals["Sell"]==1)[0],"Date"].reset_index(drop=True)
+    self.trades["Sell price"] = self.data.loc[np.where(sorted_signals["Sell"]==1)[0],"Close"].reset_index(drop=True)
+    if bool(stopLoss): #Check if the SL got triggered before the Sell date for each trade, if so, overwrite the Date and Price
+      self.stopLoss()
+    return  
+  def profit(self,capitalForEachTrade,comission):   #method for calculating profit, inputs: how much money is spent on each trade and the name of the trading strategy
+    outputFrame = pd.DataFrame(np.zeros(shape=(len(self.trades["Buy date"]),11)), columns=["buy_date","buy_price","buy_value","position","sell_date","sell_price","sell_value","comission","good_trade?","profit[%]","profit[$]"])
+    outputFrame["buy_date"] = self.trades["Buy date"]
+    outputFrame["buy_price"] = self.trades["Buy price"]
+    outputFrame["sell_date"] = self.trades["Sell date"]
+    outputFrame["sell_price"] = self.trades["Sell price"]
     outputFrame["buy_value"] = capitalForEachTrade
     outputFrame["position"] = outputFrame["buy_value"]/outputFrame["buy_price"]
     outputFrame["sell_value"] = outputFrame["position"]*outputFrame["sell_price"]
