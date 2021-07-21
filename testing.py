@@ -13,9 +13,8 @@ stock = sc.stock_daily("TSLA")
 test = anal.Analyzer(ticker="TSLA", data=stock.data)
 
 start = time.time()
-buy1 = test.methodBuy_Mcstoch_ut1()
-buy2 = test.methodBuy_Mcstoch_ut3()
-buy = test.signalOr(buy1, buy2)
+buy = test.methodBuy_Mcstoch_ut4()
+
 #output2 = test.methodSell_Mcstoch()
 print("Buy signal calculation took " + str(np.round(time.time()-start,3)) + " sec.")
 

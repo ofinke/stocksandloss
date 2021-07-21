@@ -1,7 +1,7 @@
 from scraper import stock_daily
 from analyzer import Analyzer
 import numpy as np
-ticker_name = 'TMDX'
+ticker_name = 'TSLA'
 anal = Analyzer(ticker=ticker_name,data=stock_daily(ticker_name).data)
 
 tradeSummary = anal.profit(buyMethodName='Mcstoch_ut1',sellMethodName='Mcstoch',capitalForEachTrade=400,comission=2)
