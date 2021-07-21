@@ -93,8 +93,23 @@ class Analyzer:
     sellSignal[zero_crossings[0]] = 1
     return sellSignal
 
+  # takes buy signals from self.trades and checks if stop loss is triggered
+  # if its triggered sooner than defined stop loss, overwrites it
+  def stopLoss():
+    # should have a percentage as a input (at least the basic functions, advanced will have other methods)
+    # process:
+    # 1) for cycle through rows
+    #   a) calculates sl from trades["Buy price"]
+    #   b) finds where date from trades is in data
+    #   c) for cycle through data["Low"] including only relevant dates and finds if value < sl
+    #       I) if no position is found, end of both cycles
+    #       II) if yes, compares the dates and if sl is triggered sooner, overwrites the trades["Sell date"] and ["Sell price"]
+    #           if no, cycle can continue
+    # jak tohle udělat vektorově lol? 
+    return
+  
   def signalOr(self, signal1, signal2):
-  # takes two signals and return their boolean OR
+    # takes two signals and return their boolean OR
     return np.logical_or(signal1, signal2).astype("int")
   
   def signalSorter(self,buySignal,sellSignal):
@@ -113,24 +128,31 @@ class Analyzer:
     if helper == 1:
       d = d[:-1]
     return d
+  
   def strategy(self,*,buyStrategy,sellStrategy,stopLoss):
     buyHelper = np.zeros(shape=(len(self.data["Close"]),1))
-    for j in range(len(buyStrategy)): #this cycle will load all the signals from the different buy stragies and join them to one signal vector
+    for j in range(len(buyStrategy)): # this cycle will load all the signals from the different buy stragies and join them to one signal vector
       if buyStrategy[j] == 'Simple':
           buyHelper = self.methodBuy_Simple()
       elif buyStrategy[j] == 'Mcstoch_ut1':
           buyHelper = self.methodBuy_Mcstoch_ut1()
+      elif buyStrategy[j] == 'Mcstoch_ut2':
+          buyHelper = self.methodBuy_Mcstoch_ut2()
       elif buyStrategy[j] == 'Mcstoch_ut3':
-          buyHelper = self.methodBuy_Mcstoch_ut3()    
+          buyHelper = self.methodBuy_Mcstoch_ut3()
+      elif buyStrategy[j] == 'Mcstoch_ut4':
+          buyHelper = self.methodBuy_Mcstoch_ut4()    
       else:
           print('This buy method is not impplemented')                 
       if j==0:
         buySignal = buyHelper
       else:  
         buySignal = self.signalOr(buyHelper, buySignal)
-    #for N buy signals, create N sell vectors where Nth column will be the sell signal for Nth buy signal, some sell methods that are independent will have copied columns
+    
+    # for N buy signals, create N sell vectors where Nth column will be the sell signal for Nth buy signal, 
+    # some sell methods that are independent will have copied columns
     sellHelper = np.zeros(shape=(len(self.data["Close"]),1))
-    for j in range(len(sellStrategy)): #this cycle will load all the signals from the different sell stragies and join them to one signal vector
+    for j in range(len(sellStrategy)): # this cycle will load all the signals from the different sell stragies and join them to one signal vector
       if sellStrategy[j] == 'Simple':
           sellHelper = self.methodSell_Simple()
           sellHelper = np.repeat([sellHelper,], repeats=np.sum(buySignal), axis=0)
@@ -146,14 +168,17 @@ class Analyzer:
     
     sorted_signals = self.signalSorter(buySignal,sellSignal)  
     Nbuys = np.sum(sorted_signals["Buy"])
-    self.trades = pd.DataFrame(np.zeros(shape=(Nbuys.astype("int"),4)), columns=["Buy date","Buy price","Sell Date","Sell price"])
+    self.trades = pd.DataFrame(np.zeros(shape=(Nbuys.astype("int"),4)), columns=["Buy date","Buy price","Sell date","Sell price"])
     self.trades["Buy date"] = self.data.loc[np.where(sorted_signals["Buy"]==1)[0],"Date"].reset_index(drop=True)
     self.trades["Buy price"] = self.data.loc[np.where(sorted_signals["Buy"]==1)[0],"Close"].reset_index(drop=True)
     self.trades["Sell date"] = self.data.loc[np.where(sorted_signals["Sell"]==1)[0],"Date"].reset_index(drop=True)
     self.trades["Sell price"] = self.data.loc[np.where(sorted_signals["Sell"]==1)[0],"Close"].reset_index(drop=True)
-    if bool(stopLoss): #Check if the SL got triggered before the Sell date for each trade, if so, overwrite the Date and Price
+    
+    # Check if the SL got triggered before the Sell date for each trade, if so, overwrite the Date and Price
+    if bool(stopLoss):
       self.stopLoss()
     return  
+  
   def profit(self,capitalForEachTrade,comission):   #method for calculating profit, inputs: how much money is spent on each trade and the name of the trading strategy
     outputFrame = pd.DataFrame(np.zeros(shape=(len(self.trades["Buy date"]),11)), columns=["buy_date","buy_price","buy_value","position","sell_date","sell_price","sell_value","comission","good_trade?","profit[%]","profit[$]"])
     outputFrame["buy_date"] = self.trades["Buy date"]
