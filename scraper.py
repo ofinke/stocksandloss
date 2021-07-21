@@ -16,19 +16,24 @@ import time
 
 class stock_daily():
     # CONSTRUCTOR
-    def __init__(self, ticker):
+    def __init__(self, ticker, save=True):
         # check if ticker is defined correctly
 
         self.ticker = ticker
         # try opening csv
         #   if csv exists, open it and update it
-        if os.path.isfile(os.getcwd() + "\\" + self.ticker + "_daily.csv"):
-            self.updatecsv()
-        #   if csv doesnt exists, create new one
+        if save == True:
+            if os.path.isfile(os.getcwd() + "\\" + self.ticker + "_daily.csv"):
+                self.updatecsv()
+            #   if csv doesnt exists, create new one
+            else:
+                self.createcsv()
         else:
-            self.createcsv()
+            self.scrap(startdate=dt.date.today()-dt.timedelta(days=365), enddate=dt.date.today())
+            self.data = self.scraped
+            del self.scraped
         return
-    
+
     # METHODS
     def scrap(self, startdate, enddate):
         # create yfinance object
