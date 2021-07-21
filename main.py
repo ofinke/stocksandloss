@@ -1,7 +1,6 @@
 from scraper import stock_daily
 from analyzer import Analyzer
 import numpy as np
-
 ticker_name = "AAPL"
 anal = Analyzer(ticker=ticker_name,data=stock_daily(ticker_name, save=False).data)
 
