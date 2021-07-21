@@ -101,28 +101,35 @@ class Analyzer:
   def profit(self,*,buyMethodName,sellMethodName,capitalForEachTrade,comission):   #method for calculating profit, inputs: how much money is spent on each trade and the name of the trading strategy
     if buyMethodName == 'Simple':
         buySignal = self.methodBuy_Simple()
+        if sellMethodName == 'Simple':    
+          sellSignal = self.methodSell_Simple()
+          sorted_signals = self.signalSorter(buySignal,sellSignal) 
+          # trades["buy_date","buy_price","sell_date","sell_price"] = 
+        else:
+          print('This combination of methods is not impplemented') 
     elif buyMethodName == 'Mcstoch_ut1':
         buy1 = self.methodBuy_Mcstoch_ut1()
         buy2 = self.methodBuy_Mcstoch_ut3() 
         buySignal = self.signalOr(buy1, buy2)
+        if sellMethodName == 'Mcstoch':
+          sellSignal = self.methodSell_Mcstoch()
+          sorted_signals = self.signalSorter(buySignal,sellSignal) 
+          # trades["buy_date","buy_price","sell_date","sell_price"] = 
+        else:
+          print('This combination of methods is not implemented')     
     else:
-        print('This method is not impplemented')    
-    if sellMethodName == 'Simple':    
-        sellSignal = self.methodSell_Simple()
-    elif sellMethodName == 'Mcstoch':
-        sellSignal = self.methodSell_Mcstoch()    
-    else:
-        print('This method is not implemented')    
-    trades = self.signalSorter(buySignal,sellSignal)   #trades dataframe holds the buy and sell signals for each trade
+        print('This buy method is not impplemented')    
+    #from this point, trades dataframe holds the buy and sell signals for each trade together with the buying and selling price
 
 
-    Nbuys = np.sum(trades["buy"]).astype(int)
+
+    Nbuys = np.sum(self.trades["buy"]).astype(int)
     zero_data = np.zeros(shape=(Nbuys,11)) 
     outputFrame = pd.DataFrame(zero_data, columns=["buy_date","buy_price","buy_value","position","sell_date","sell_price","sell_value","comission","good_trade?","profit[%]","profit[$]"])
-    outputFrame["buy_date"] = self.data.loc[np.where(trades["buy"]==1)[0],"Date"].reset_index(drop=True)
-    outputFrame["buy_price"] = self.data.loc[np.where(trades["buy"]==1)[0],"Close"].reset_index(drop=True)
-    outputFrame["sell_date"] = self.data.loc[np.where(trades["sell"]==1)[0],"Date"].reset_index(drop=True)
-    outputFrame["sell_price"] = self.data.loc[np.where(trades["sell"]==1)[0],"Close"].reset_index(drop=True)
+    outputFrame["buy_date"] = self.data.loc[np.where(self.trades["buy"]==1)[0],"Date"].reset_index(drop=True)
+    outputFrame["buy_price"] = self.data.loc[np.where(self.trades["buy"]==1)[0],"Close"].reset_index(drop=True)
+    outputFrame["sell_date"] = self.data.loc[np.where(self.trades["sell"]==1)[0],"Date"].reset_index(drop=True)
+    outputFrame["sell_price"] = self.data.loc[np.where(self.trades["sell"]==1)[0],"Close"].reset_index(drop=True)
     outputFrame["buy_value"] = capitalForEachTrade
     outputFrame["position"] = outputFrame["buy_value"]/outputFrame["buy_price"]
     outputFrame["sell_value"] = outputFrame["position"]*outputFrame["sell_price"]
