@@ -88,12 +88,14 @@ class Analyzer:
     zero_data = np.zeros(shape=(len(buySignal),2))
     d = pd.DataFrame(zero_data, columns=["buy","sell"])
     for j in range(0,len(buySignal)):
-      if buySignal[j]==1&helper==0:
+      if buySignal[j]==1 and helper==0:
         d["buy"][j]=1
         helper = 1
-      elif sellSignal[j]==1&helper==1: 
+      elif sellSignal[j]==1 and helper==1: 
         d["sell"][j]=1
         helper = 0
+    if helper == 1:
+      d = d[:-1]
     return d
     
   def profit(self,*,buyMethodName,sellMethodName,capitalForEachTrade,comission):   #method for calculating profit, inputs: how much money is spent on each trade and the name of the trading strategy
@@ -111,14 +113,16 @@ class Analyzer:
         sellSignal = self.methodSell_Mcstoch()    
     else:
         print('This method is not implemented')    
-    sorted_signals = self.signalSorter(buySignal,sellSignal)   
-    Nbuys = np.sum(sorted_signals["buy"]).astype(int)
+    trades = self.signalSorter(buySignal,sellSignal)   #trades dataframe holds the buy and sell signals for each trade
+
+
+    Nbuys = np.sum(trades["buy"]).astype(int)
     zero_data = np.zeros(shape=(Nbuys,11)) 
     outputFrame = pd.DataFrame(zero_data, columns=["buy_date","buy_price","buy_value","position","sell_date","sell_price","sell_value","comission","good_trade?","profit[%]","profit[$]"])
-    outputFrame["buy_date"] = self.data.loc[np.where(sorted_signals["buy"]==1)[0],"Date"].reset_index(drop=True)
-    outputFrame["buy_price"] = self.data.loc[np.where(sorted_signals["buy"]==1)[0],"Close"].reset_index(drop=True)
-    outputFrame["sell_date"] = self.data.loc[np.where(sorted_signals["sell"]==1)[0],"Date"].reset_index(drop=True)
-    outputFrame["sell_price"] = self.data.loc[np.where(sorted_signals["sell"]==1)[0],"Close"].reset_index(drop=True)
+    outputFrame["buy_date"] = self.data.loc[np.where(trades["buy"]==1)[0],"Date"].reset_index(drop=True)
+    outputFrame["buy_price"] = self.data.loc[np.where(trades["buy"]==1)[0],"Close"].reset_index(drop=True)
+    outputFrame["sell_date"] = self.data.loc[np.where(trades["sell"]==1)[0],"Date"].reset_index(drop=True)
+    outputFrame["sell_price"] = self.data.loc[np.where(trades["sell"]==1)[0],"Close"].reset_index(drop=True)
     outputFrame["buy_value"] = capitalForEachTrade
     outputFrame["position"] = outputFrame["buy_value"]/outputFrame["buy_price"]
     outputFrame["sell_value"] = outputFrame["position"]*outputFrame["sell_price"]
