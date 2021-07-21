@@ -95,18 +95,26 @@ class Analyzer:
 
   # takes buy signals from self.trades and checks if stop loss is triggered
   # if its triggered sooner than defined stop loss, overwrites it
-  def stopLoss():
-    # should have a percentage as a input (at least the basic functions, advanced will have other methods)
-    # process:
-    # 1) for cycle through rows
-    #   a) calculates sl from trades["Buy price"]
-    #   b) finds where date from trades is in data
-    #   c) for cycle through data["Low"] including only relevant dates and finds if value < sl
-    #       I) if no position is found, end of both cycles
-    #       II) if yes, compares the dates and if sl is triggered sooner, overwrites the trades["Sell date"] and ["Sell price"]
-    #           if no, cycle can continue
-    # jak tohle udělat vektorově lol? 
+  def stopLoss(self,*,sl):
+    for i in range(len(self.trades["Buy price"])):
+      sl_price = self.trades["Buy price"][i] - sl*self.trades["Buy price"][i]
+      wherePriceLower = np.where(self.data["Low"]<sl_price)[0]
+      whereDateLater = np.where(self.data["Date"]>self.trades["Buy date"][i])[0]
+      afterBuy = np.where(wherePriceLower >= whereDateLater[0])[0]
+      if afterBuy.size != 0 and self.data["Date"][wherePriceLower[afterBuy[0]]]<=self.trades["Sell date"][i]:
+        self.trades.loc[i,["Sell date"]] = self.data["Date"][wherePriceLower[afterBuy[0]]]
+        self.trades.loc[i,["Sell price"]] = sl_price
     return
+  def profitTaker(self,*,profitValue):
+    for i in range(len(self.trades["Buy price"])):
+      profit_price = self.trades["Buy price"][i] + profitValue*self.trades["Buy price"][i]
+      wherePriceHigher = np.where(self.data["High"]>profit_price)[0]
+      whereDateLater = np.where(self.data["Date"]>self.trades["Buy date"][i])[0]
+      afterBuy = np.where(wherePriceHigher >= whereDateLater[0])[0]
+      if afterBuy.size != 0 and self.data["Date"][wherePriceHigher[afterBuy[0]]]<=self.trades["Sell date"][i]:
+        self.trades.loc[i,["Sell date"]] = self.data["Date"][wherePriceHigher[afterBuy[0]]]
+        self.trades.loc[i,["Sell price"]] = profit_price
+    return 
   
   def signalOr(self, signal1, signal2):
     # takes two signals and return their boolean OR
@@ -125,11 +133,10 @@ class Analyzer:
       elif sellSignal[Buy_number-1,j]==1 and helper==1: 
         d["Sell"][j]=1
         helper = 0
-    if helper == 1:
-      d = d[:-1]
+    while d["Sell"].iloc[-1]==0: d = d[:-1]   
     return d
   
-  def strategy(self,*,buyStrategy,sellStrategy,stopLoss):
+  def strategy(self,*,buyStrategy,sellStrategy,stopLoss,stopLossValue,profitTaker,profitTakerValue):
     buyHelper = np.zeros(shape=(len(self.data["Close"]),1))
     for j in range(len(buyStrategy)): # this cycle will load all the signals from the different buy stragies and join them to one signal vector
       if buyStrategy[j] == 'Simple':
@@ -176,21 +183,23 @@ class Analyzer:
     
     # Check if the SL got triggered before the Sell date for each trade, if so, overwrite the Date and Price
     if bool(stopLoss):
-      self.stopLoss()
+      self.stopLoss(sl=stopLossValue)
+    if bool(profitTaker):
+      self.profitTaker(profitValue=profitTakerValue)  
     return  
   
   def profit(self,capitalForEachTrade,comission):   #method for calculating profit, inputs: how much money is spent on each trade and the name of the trading strategy
-    outputFrame = pd.DataFrame(np.zeros(shape=(len(self.trades["Buy date"]),11)), columns=["buy_date","buy_price","buy_value","position","sell_date","sell_price","sell_value","comission","good_trade?","profit[%]","profit[$]"])
-    outputFrame["buy_date"] = self.trades["Buy date"]
-    outputFrame["buy_price"] = self.trades["Buy price"]
-    outputFrame["sell_date"] = self.trades["Sell date"]
-    outputFrame["sell_price"] = self.trades["Sell price"]
-    outputFrame["buy_value"] = capitalForEachTrade
-    outputFrame["position"] = outputFrame["buy_value"]/outputFrame["buy_price"]
-    outputFrame["sell_value"] = outputFrame["position"]*outputFrame["sell_price"]
-    outputFrame["comission"] = comission
-    outputFrame.loc[outputFrame["sell_value"]>outputFrame["buy_value"] ,"good_trade?"] = 1
-    outputFrame["profit[$]"] = outputFrame["sell_value"]-outputFrame["buy_value"]-outputFrame["comission"]
-    outputFrame["profit[%]"] = 100*outputFrame["profit[$]"]/outputFrame["buy_value"]
+    outputFrame = pd.DataFrame(np.zeros(shape=(len(self.trades["Buy date"]),11)), columns=["Buy date","Buy price","Buy value","Position","Sell date","Sell price","Sell value","Comission","Good trade?","Profit[%]","Profit[$]"])
+    outputFrame["Buy date"] = self.trades["Buy date"]
+    outputFrame["Buy price"] = self.trades["Buy price"]
+    outputFrame["Sell date"] = self.trades["Sell date"]
+    outputFrame["Sell price"] = self.trades["Sell price"]
+    outputFrame["Buy value"] = capitalForEachTrade
+    outputFrame["Position"] = outputFrame["Buy value"]/outputFrame["Buy price"]
+    outputFrame["Sell value"] = outputFrame["Position"]*outputFrame["Sell price"]
+    outputFrame["Comission"] = comission
+    outputFrame.loc[outputFrame["Sell value"]>outputFrame["Buy value"] ,"Good trade?"] = 1
+    outputFrame["Profit[$]"] = outputFrame["Sell value"]-outputFrame["Buy value"]-outputFrame["Comission"]
+    outputFrame["Profit[%]"] = 100*outputFrame["Profit[$]"]/outputFrame["Buy value"]
     return outputFrame
 
