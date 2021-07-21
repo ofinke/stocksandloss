@@ -38,7 +38,13 @@ class Analyzer:
     buySignal = np.zeros(self.data["Close"].size, dtype=int)
     # calculate mcstoch
     mcs = indicators.mcstoch(self.data, fl=12, sl=26, sig=9, price="Close", period=14, sk=2, sd=4)
-
+    macd = indicators.macd(self.data, fl=12, sl=26, sig=9, price="Close")
+    # find changes from red day to blue day
+    bchange = np.concatenate((np.array([0]), (mcs["blue"].to_numpy()[:-1] < mcs["blue"].to_numpy()[1:]).astype("int")))
+    rchange = np.concatenate((np.array([0]), (mcs["red"].to_numpy()[:-1] > mcs["red"].to_numpy()[1:]).astype("int")))
+    # find situations where close > open (green candle)
+    gcandle = self.data["Close"] > self.data["Open"]
+    buySignal = bchange & rchange & (macd["signal"] > 0) & gcandle
     return buySignal
   
   def methodBuy_Mcstoch_ut3(self):
@@ -61,7 +67,15 @@ class Analyzer:
     buySignal = np.zeros(self.data["Close"].size, dtype=int)
     # calculate mcstoch
     mcs = indicators.mcstoch(self.data, fl=12, sl=26, sig=9, price="Close", period=14, sk=2, sd=4)
-    
+    macd = indicators.macd(self.data, fl=12, sl=26, sig=9, price="Close")
+    # find green and red candle days
+    gcandle = (self.data["Close"] > self.data["Open"]).to_numpy().astype("int")
+    rcandle = (self.data["Close"] < self.data["Open"]).to_numpy().astype("int")
+    # find changes from red days to green days
+    gchange = np.concatenate((np.array([0]), gcandle[:-1] < gcandle[1:])).astype("int")
+    rchange = np.concatenate((np.array([0]), rcandle[:-1] > rcandle[1:])).astype("int")
+    # create buy signal
+    buySignal = gchange & rchange & (macd["signal"] > 0)
     return buySignal
   
   def methodSell_Mcstoch(self):

@@ -1,7 +1,7 @@
 from scraper import stock_daily
 from analyzer import Analyzer
 import numpy as np
-ticker_name = 'TSLA'
+ticker_name = 'HIHO'
 
 anal = Analyzer(ticker=ticker_name,data=stock_daily(ticker_name).data)
 anal.strategy(buyStrategy=['Mcstoch_ut1','Mcstoch_ut3'],sellStrategy=['Mcstoch'],stopLoss=False)
