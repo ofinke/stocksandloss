@@ -131,7 +131,8 @@ class Analyzer:
         sellSignal = self.signalOr(sellHelper, sellSignal)
     
     sorted_signals = self.signalSorter(buySignal,sellSignal)  
-    self.trades = pd.DataFrame(np.zeros(shape=(np.sum(buySignal),4)), columns=["Buy date","Buy price","Sell Date","Sell price"])
+    Nbuys = np.sum(sorted_signals["Buy"])
+    self.trades = pd.DataFrame(np.zeros(shape=(Nbuys.astype("int"),4)), columns=["Buy date","Buy price","Sell Date","Sell price"])
     self.trades["Buy date"] = self.data.loc[np.where(sorted_signals["Buy"]==1)[0],"Date"].reset_index(drop=True)
     self.trades["Buy price"] = self.data.loc[np.where(sorted_signals["Buy"]==1)[0],"Close"].reset_index(drop=True)
     self.trades["Sell date"] = self.data.loc[np.where(sorted_signals["Sell"]==1)[0],"Date"].reset_index(drop=True)
