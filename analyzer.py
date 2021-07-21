@@ -25,8 +25,11 @@ class Analyzer:
     # calculate mcstoch
     mcs = indicators.mcstoch(self.data, fl=12, sl=26, sig=9, price="Close", period=14, sk=2, sd=4)
     macd = indicators.macd(self.data, fl=12, sl=26, sig=9, price="Close")
-    # evaluate the signal
-    buySignal = (mcs["green"].gt(mcs["red"])) & (macd["signal"] > 0)
+    # find changes from red days to green days
+    gchange = np.concatenate((np.array([0]), (mcs["green"].to_numpy()[:-1] < mcs["green"].to_numpy()[1:]).astype("int")))
+    rchange = np.concatenate((np.array([0]), (mcs["red"].to_numpy()[:-1] > mcs["red"].to_numpy()[1:]).astype("int")))
+    # create buy signal
+    buySignal = gchange & rchange & (macd["signal"] > 0)
     return buySignal.astype("int").to_numpy()
 
   def methodBuy_Mcstoch_ut2(self):
@@ -45,8 +48,11 @@ class Analyzer:
     # calculate mcstoch
     mcs = indicators.mcstoch(self.data, fl=12, sl=26, sig=9, price="Close", period=14, sk=2, sd=4)
     macd = indicators.macd(self.data, fl=12, sl=26, sig=9, price="Close")
-    # evaluate the signal
-    buySignal = (mcs["green"].gt(mcs["blue"])) & (macd["signal"] > 0)
+    # find changes from blue days to green days
+    gchange = np.concatenate((np.array([0]), (mcs["green"].to_numpy()[:-1] < mcs["green"].to_numpy()[1:]).astype("int")))
+    bchange = np.concatenate((np.array([0]), (mcs["blue"].to_numpy()[:-1] > mcs["blue"].to_numpy()[1:]).astype("int")))
+    # create buy signal
+    buySignal = gchange & bchange & (macd["signal"] > 0)
     return buySignal.astype("int").to_numpy()
 
   def methodBuy_Mcstoch_ut4(self):
@@ -94,7 +100,9 @@ class Analyzer:
     if buyMethodName == 'Simple':
         buySignal = self.methodBuy_Simple()
     elif buyMethodName == 'Mcstoch_ut1':
-        buySignal = self.methodBuy_Mcstoch_ut1()
+        buy1 = self.methodBuy_Mcstoch_ut1()
+        buy2 = self.methodBuy_Mcstoch_ut3() 
+        buySignal = self.signalOr(buy1, buy2)
     else:
         print('This method is not impplemented')    
     if sellMethodName == 'Simple':    
