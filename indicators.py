@@ -75,6 +75,19 @@ def mcstoch(x, fl=12, sl=26, sig=9, price="Close", period=14, sk=2, sd=4):
 
     return result
 
+# Bollinger Bands as defined at https://www.investopedia.com/terms/b/bollingerbands.asp
+def bollbands(x, period=20, stdn=2):
+    result = x.loc[:, ["Date"]]
+
+    tp = (x["High"] + x["Low"] + x["Close"])/3  # typical price
+    ma = tp.rolling(period).mean()
+    std = tp.rolling(period).std()
+
+    result["lower"] = ma - stdn*std
+    result["upper"] = ma + stdn*std
+
+    return result
+
 # TESTING RUNTIME
 def main():
     # import only for this function
@@ -99,11 +112,15 @@ def main():
     ms = mcstoch(stock.data)
     print("McStoch calculation took " + str(np.round(time.time()-start,3)) + " sec.")
 
+    start = time.time()
+    bb = bollbands(stock.data)
+    print("Bollinger bands calculation took " + str(np.round(time.time()-start,3)) + " sec.")
+
     fig, ax = plt.subplots(nrows=4)
     # plot stock + sma / ema
     ax[0].plot(stock.data["Close"], label="Close")
-    ax[0].plot(x["EMA"], label="EMA26")
-    ax[0].plot(y["SMA"], label="SMA50")
+    ax[0].plot(bb["lower"], label="bb low")
+    ax[0].plot(bb["upper"], label="bb upper")
     # ax[0].set(xlim=(200, 250))
     ax[0].legend()
     # plot macd
