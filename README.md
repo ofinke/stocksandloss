@@ -21,14 +21,14 @@ Class | Parameters | Outputs
 
 File containing several functions for calculating basic technical analysis indicators. List of implemented indicators follows, definitions for more complex indicators are taken from investopedia or URL link is present in the description. Output is always defined as a DataFrame with first column ```["Date"]``` copied from the stock data and other columns corresponding to the indicator are written in the "Output columns" column.
 
-Name | Function | Parameters | Output columns | Description
------|----------|------------|---------|-------------
-SMA | ```sma()``` | w: length <br> price: which price column to use, default = ```"Close"``` | ```"SMA"``` | Simple moving average
-EMA | ```ema()``` | same as ```sma()``` | ```"EMA"``` | Exponential moving average
-MACD | ```macd()``` | fl: fast line length, def = ```12``` <br> sl: slow line length, def = ```26``` <br> sig: signal length, def = ```9``` <br> price: same as ```sma()``` | ```"macd", "signal", "histogram"``` | MACD (Moving average convergence divergence) <br> as defined by [Investopedia](https://www.investopedia.com/terms/m/macd.asp)
-Stoch | ```stoch()``` | period: length of data period, def = ```14``` <br> sk: k line smoothing, def = ```2``` <br> sd: d line smoothing, def = ```4``` | ```"k", "d"``` | Stochastic Oscillator. Code copied from [here](https://www.learnpythonwithrune.org/pandas-calculate-the-stochastic-oscillator-indicator-for-stocks/)
-McStoch | ```mcstoch()``` | Same inputs as ```macd()``` and ```stoch()``` | ```"green", "yellow", "red", "blue"``` | Combination of macd and stoch indicators to filter opportunities
-Bollinger bands | ```bollbands()``` | period: length of data period, def = ```20``` <br> stdn: # of std multipliers, def = ```2``` | ```"lower", "upper"``` | Bollinger bands as defined by [investopedia](https://www.investopedia.com/terms/b/bollingerbands.asp)
+Function | Parameters | Output columns | Description
+----------|------------|---------|-------------
+```sma()``` | w: length <br> price: which price column to use, default = ```"Close"``` | ```"SMA"``` | Simple moving average
+```ema()``` | same as ```sma()``` | ```"EMA"``` | Exponential moving average
+```macd()``` | fl: fast line length, def = ```12``` <br> sl: slow line length, def = ```26``` <br> sig: signal length, def = ```9``` <br> price: same as ```sma()``` | ```"macd", "signal", "histogram"``` | MACD (Moving average convergence divergence) <br> as defined by [Investopedia](https://www.investopedia.com/terms/m/macd.asp)
+```stoch()``` | period: length of data period, def = ```14``` <br> sk: k line smoothing, def = ```2``` <br> sd: d line smoothing, def = ```4``` | ```"k", "d"``` | Stochastic Oscillator. Code copied from [here](https://www.learnpythonwithrune.org/pandas-calculate-the-stochastic-oscillator-indicator-for-stocks/)
+```mcstoch()``` | Same inputs as ```macd()``` and ```stoch()``` | ```"green", "yellow", "red", "blue"``` | Combination of macd and stoch indicators to filter opportunities
+```bollbands()``` | period: length of data period, def = ```20``` <br> stdn: # of std multipliers, def = ```2``` | ```"lower", "upper"``` | Bollinger bands as defined by [investopedia](https://www.investopedia.com/terms/b/bollingerbands.asp)
 
 Other indicators will be added in the future
 
