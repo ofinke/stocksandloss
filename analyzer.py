@@ -45,7 +45,7 @@ class Analyzer:
     # find situations where close > open (green candle)
     gcandle = self.data["Close"] > self.data["Open"]
     buySignal = bchange & rchange & (macd["signal"] > 0) & gcandle
-    return buySignal
+    return buySignal.astype("int").to_numpy()
   
   def methodBuy_Mcstoch_ut3(self):
     # McStoch 3 buy signal in uptrend (macd signal > 0)
@@ -71,12 +71,28 @@ class Analyzer:
     # find green and red candle days
     gcandle = (self.data["Close"] > self.data["Open"]).to_numpy().astype("int")
     rcandle = (self.data["Close"] < self.data["Open"]).to_numpy().astype("int")
-    # find changes from red days to green days
+    # find changes from red candle days to green candle days
     gchange = np.concatenate((np.array([0]), gcandle[:-1] < gcandle[1:])).astype("int")
     rchange = np.concatenate((np.array([0]), rcandle[:-1] > rcandle[1:])).astype("int")
     # create buy signal
-    buySignal = gchange & rchange & (macd["signal"] > 0)
-    return buySignal
+    buySignal = gchange & rchange & (macd["signal"] > 0) & (mcs["blue"])
+    return buySignal.astype("int").to_numpy()
+
+  def methodBuy_Mcstoch_dt1(self):
+    # McStoch buy signal in downtrend
+    # previous day close pod ema50 and today close > ema50 and green or blue day
+    buySignal = np.zeros(self.data["Close"].size, dtype=int)
+    # calculate required indicators
+    mcs = indicators.mcstoch(self.data, fl=12, sl=26, sig=9, price="Close", period=14, sk=2, sd=4)
+    macd = indicators.macd(self.data, fl=12, sl=26, sig=9, price="Close")
+    ma = indicators.ema(self.data, 50)
+    # find days where ema 50 > close 
+    abma = (ma["EMA"] > self.data["Close"]).to_numpy().astype("int")
+    # find change days when close > ema50
+    machange = np.concatenate((np.array([0]), abma[:-1] < abma[1:])).astype("int")
+    # create buy signal
+    buySignal = (macd["signal"] < 0) & machange & (mcs["blue"] | mcs["green"])
+    return buySignal.astype("int").to_numpy()
   
   def methodSell_Mcstoch(self):
     # McStoch sell signal
@@ -149,6 +165,8 @@ class Analyzer:
           buyHelper = self.methodBuy_Mcstoch_ut3()
       elif buyStrategy[j] == 'Mcstoch_ut4':
           buyHelper = self.methodBuy_Mcstoch_ut4()    
+      elif buyStrategy[j] == 'Mcstoch_dt1':
+          buyHelper = self.methodBuy_Mcstoch_dt1()  
       else:
           print('This buy method is not impplemented')                 
       if j==0:
