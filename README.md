@@ -1,91 +1,35 @@
 # Stocks & Loss
- Scrapping and analysis of stocks data.
+Framework for developing and backtesting strategies for swing trading based on technical analysis indicators. Compromises of multiple self-functioning blocks. ```scraper.py``` holds class for storing, loading and scraping stock data from [yahoo finance](https://finance.yahoo.com/). ```indicators.py``` holds multiple functions for technical indicators and ```analyzer.py``` holds trading strategies and methods for evaluating trades.
 
-## Requirements
+### Requirements
 * pandas
 * numpy
 * yfinance
 
-and some others
-
-
 # Scraper
 
-Description of scraper.py for scraping data from yahoo finance using yfinance. Scraper automatically downloads data from last year and stores them in csv, which it also keeps updated.
+Scraped data can be stored into corresponding csv file, if called on the same stock again, it loads the data from the csv file and updates them if required. Saving data can be disabled if desired. Currently, scraper automatically scrapes data from last year. 
 
-## stock_daily()
-
-Inputs
-* ticker: string of stock ticker as used on the stock exchange
-
-Outputs
-* self.data: pandas DataFrame with following columns: Date (string), Open (float), High (float), Low (float), Close (float), Volume (int?). 
-
-class saves scraped data into csv file named "ticker"_daily.csv, when called again, it opens data from this csv file and updates them according to dates.
+Class | Parameters | Outputs 
+------|------------|--------
+```stock_daily()``` | am too lazy now | am too lazy now
 
 ### Known issues
 * Data are always from the day before, this is property of the yfinance package for data scraping
 
 # Indicators
 
-File containing several functions for calculating basic technical analysis indicators
+File containing several functions for calculating basic technical analysis indicators. List of implemented indicators follows, definitions for more complex indicators are taken from investopedia or URL link is present in the description. Output is always defined as a DataFrame with first column ```["Date"]``` copied from the stock data and other columns corresponding to the indicator are written in the "Output columns" column.
 
-### Known issues
-* For some reason I didn't manage to plot results from mcstoch in the testing routine, mostly as I'm lazy, but the calculation should be good.
+Name | Function | Parameters | Output columns | Description
+-----|----------|------------|---------|-------------
+SMA | ```sma()``` | w: length <br> price: which price column to use, default = ```"Close"``` | ```"SMA"``` | Simple moving average
+EMA | ```ema()``` | same as ```sma()``` | ```"EMA"``` | Exponential moving average
+MACD | ```macd()``` | fl: fast line length, def = ```12``` <br> sl: slow line length, def = ```26``` <br> sig: signal length, def = ```9``` <br> price: same as ```sma()``` | ```"macd", "signal", "histogram"``` | MACD (Moving average convergence divergence) <br> as defined by [Investopedia](https://www.investopedia.com/terms/m/macd.asp)
+Stoch | ```stoch()``` | period: length of data period, def = ```14``` <br> sk: k line smoothing, def = ```2``` <br> sd: d line smoothing, def = ```4``` | ```"k", "d"``` | Stochastic Oscillator. Code copied from [here](https://www.learnpythonwithrune.org/pandas-calculate-the-stochastic-oscillator-indicator-for-stocks/)
+McStoch | ```mcstoch()``` | Same inputs as ```macd()``` and ```stoch()``` | ```"green", "yellow", "red", "blue"``` | Combination of macd and stoch indicators to filter opportunities
+Bollinger bands | ```bollbands()``` | period: length of data period, def = ```20``` <br> stdn: # of std multipliers, def = ```2``` | ```"lower", "upper"``` | Bollinger bands as defined by [investopedia](https://www.investopedia.com/terms/b/bollingerbands.asp)
 
-## sma()
-calculates simple moving average
+Other indicators will be added in the future
 
-Inputs:
-* x: DataFrame with stock data
-* w: length of the sma
-* price: string which corresponds to column to use from x, default "Close"
-
-Output
-* result: DataFrame with "Date" and "SMA" columns
-
-## ema()
-calculates exp moving average
-
-Inputs:
-* x: DataFrame with stock data
-* w: length of the sma
-* price: string which corresponds to column to use from x, default "Close"
-
-Output
-* result: DataFrame with "Date" and "EMA" columns
-
-## macd()
-Calculates MACD
-
-Inputs:
-* x: DataFrame with stock data
-* fl: length of the fast line, default = 12
-* sl: length of the slow line, default = 26
-* sig: length of the signal, default = 9
-* price: string which corresponds to column to use from x, default "Close"
-
-Output:
-* result: DataFrame with "Date", "macd", "signal" and "histogram" columns
-
-## stoch()
-Stochastic Oscillator, copied from https://www.learnpythonwithrune.org/pandas-calculate-the-stochastic-oscillator-indicator-for-stocks/
-
-Inputs:
-* x: DataFrame with stock data
-* period: period for data comparison, default = 14
-* sk: smoothing of k line, default = 2
-* sd: smoothing of d line, default = 4
-
-Output:
-* result: DataFrame with "Date", "macd", "signal" and "histogram" columns
-
-## mcstoch()
-Color indicator based on combination of macd and stochastic oscillator data, not yet implemnted
-
-Inputs:
-* x: DataFrame with stock data
-* same settings as for macd and stochastic oscillator
-
-output:
-* result: DataFrame with "Date", "green", "blue", "yellow" and "red" columns (colors are represented as integers 1 and 0)
+# Analyzer
