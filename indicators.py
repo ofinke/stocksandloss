@@ -29,13 +29,16 @@ def ema(x, w, price="Close"):
     # price - strong, name of which column to use, default "Close"
     result = x.loc[:, ["Date"]]
     result["EMA"] = x[price].ewm(span=w, adjust=False).mean()
+    result.loc[:w,["EMA"]] = np.NaN
     return result
 
 # MACD
 def macd(x, fl=12, sl=26, sig=9, price="Close"):
     result = x.loc[:, ["Date"]]
     fastema = x[price].ewm(span=fl, adjust=False).mean()
+    fastema[:fl] = np.NaN
     slowema = x[price].ewm(span=sl, adjust=False).mean()
+    slowema[:sl] = np.NaN
     result["macd"] = fastema - slowema
     result["signal"] = result["macd"].ewm(span=sig, adjust=False).mean()
     result["histogram"] = result["macd"] - result["signal"]
@@ -131,7 +134,7 @@ def main():
     # plot stochastic oscillator
     ax[2].plot(so["k"], label="k")
     ax[2].plot(so["d"], label="d")
-    # ax[2].set(xlim=(200, 250))
+    ax[2].set(xlim=(0, 250))
     ax[2].legend()
     # plot McStoch
     ax[3].scatter(ms.index, ms["green"], color="green", marker="1", alpha=0.5)
