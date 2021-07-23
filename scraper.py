@@ -16,7 +16,7 @@ import time
 
 class stock_daily():
     # CONSTRUCTOR
-    def __init__(self, ticker, edate=dt.date.today(), delta=dt.timedelta(days=365), pth=os.getcwd(), save=True):
+    def __init__(self, ticker, save=True, edate=dt.date.today(), delta=dt.timedelta(days=365), pth=os.getcwd()):
         # check if ticker is defined correctly
         self.ticker = ticker
         # try opening csv
@@ -33,7 +33,7 @@ class stock_daily():
         return
 
     # METHODS
-    def scrap(self, startdate, enddate, delta):
+    def scrap(self, startdate, enddate):
         # create yfinance object
         st = yf.Ticker(self.ticker)
         # download daily data from startdate to enddate withou splits and dividends
