@@ -89,9 +89,9 @@ class Analyzer:
     # find days where ema 50 > close 
     abma = (ma["EMA"] > self.data["Close"]).to_numpy().astype("int")
     # find change days when close > ema50
-    machange = np.concatenate((np.array([0]), abma[:-1] < abma[1:])).astype("int")
+    machange = np.concatenate((np.array([0]), abma[:-1] > abma[1:])).astype("int")
     # create buy signal
-    buySignal = (macd["signal"] < 0) & machange & (mcs["blue"] | mcs["green"])
+    buySignal = (macd["signal"] < 0).astype("int") & machange & (mcs["blue"] | mcs["green"])
     return buySignal.astype("int").to_numpy()
   
   def methodSell_Mcstoch(self):
