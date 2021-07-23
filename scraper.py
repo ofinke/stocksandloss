@@ -16,26 +16,24 @@ import time
 
 class stock_daily():
     # CONSTRUCTOR
-    def __init__(self, ticker, save=True):
+    def __init__(self, ticker, edate=dt.date.today(), delta=dt.timedelta(days=365), pth=os.getcwd(), save=True):
         # check if ticker is defined correctly
-
         self.ticker = ticker
         # try opening csv
-        #   if csv exists, open it and update it
+        # if csv exists and , open it and update it
         if save == True:
-            if os.path.isfile(os.getcwd() + "\\" + self.ticker + "_daily.csv"):
-                self.updatecsv()
-            #   if csv doesnt exists, create new one
+            if os.path.isfile(pth + "\\" + self.ticker + "_daily.csv"):
+                self.updatecsv(edate=edate, delta=delta, pth=pth)
             else:
-                self.createcsv()
+                self.createcsv(edate=edate, delta=delta, pth=pth)
         else:
-            self.scrap(startdate=dt.date.today()-dt.timedelta(days=365), enddate=dt.date.today())
+            self.scrap(startdate=edate-delta, enddate=edate)
             self.data = self.scraped
             del self.scraped
         return
 
     # METHODS
-    def scrap(self, startdate, enddate):
+    def scrap(self, startdate, enddate, delta):
         # create yfinance object
         st = yf.Ticker(self.ticker)
         # download daily data from startdate to enddate withou splits and dividends
@@ -43,29 +41,30 @@ class stock_daily():
         self.scraped = self.scraped.reset_index().rename(columns={self.scraped.index.name:"Date"})
         return
 
-    def createcsv(self):
+    def createcsv(self, edate, delta, pth):
         # scrape data from today - 1 year
         try:
-            self.scrap(startdate=dt.date.today()-dt.timedelta(days=365), enddate=dt.date.today())
+            self.scrap(startdate=edate-delta, enddate=edate)
             # save data into csv
-            self.scraped.to_csv(self.ticker + "_daily.csv", index=False)
+            self.scraped.to_csv(pth + "\\" + self.ticker + "_daily.csv", index=False)
             # save data into self.data
             self.data = self.scraped
             del self.scraped    
         except:
-            print("lol")
+            raise RuntimeError("Couldn't scrape data")
         return
 
-    def updatecsv(self):
+    def updatecsv(self, edate, delta, pth):
         # load csv
-        self.loaded = pd.read_csv(os.getcwd() + "\\" + self.ticker + "_daily.csv")
+        self.loaded = pd.read_csv(pth + "\\" + self.ticker + "_daily.csv")
         # changing date format back to timestamp
         self.loaded["Date"] = self.loaded["Date"].astype("datetime64[ns]")
         # check date of latest data in the csv
         # scrape missing data from last business day to latest stored day in csv
         lastDay = self.loaded.iloc[-1, 0]
-        delta = pd.Timestamp.today().normalize() - lastDay
-        if delta.days > 0:
+        delta = edate - dt.date(lastDay.year, lastDay.month, lastDay.day)
+        # add shift by weekday, on monday -2, on sunday -1
+        if delta.days > 1:
             # try downloading new data, if it fails, pass loaded data from csv
             try:
                 # scrap data from the last day in the table to today
@@ -80,12 +79,14 @@ class stock_daily():
                 # else add the data to the loaded table and save them into csv, and pass them
                 else: 
                     self.data = pd.concat([self.loaded, self.scraped], ignore_index=True)
-                    self.data.to_csv(self.ticker + "_daily.csv", index=False)
+                    self.data.to_csv(pth + "\\" + self.ticker + "_daily.csv", index=False)
             except:
                 # pass loaded data of the datascraping fails for some reason
                 # (if the get_loc() doesnt find anything, it just throws error instead of -1 or something like that)
                 print("Data scraping failed, passing old saved data")
                 self.data = self.loaded 
+        else:
+            self.data = self.loaded 
         del self.loaded
 
         return
@@ -94,14 +95,13 @@ class stock_daily():
 # testing script runtime
 def main():
     start = time.time()
-    s = stock_daily("TSLA")
+    s = stock_daily("TSLA", save=True)
     print("Scraping took " + str(np.round(time.time()-start,3)) + " sec.")
     # testing the scraper
     # st = yf.Ticker("TSLA")
     # scraped = st.history(period="1y", interval="1d", actions=False)
     # scraped = scraped.reset_index().rename(columns={scraped.index.name:"Date"})
     # print(scraped.iloc[-1, 0])
-
     return
 
 if __name__ == "__main__":
