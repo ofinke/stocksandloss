@@ -216,7 +216,6 @@ class Analyzer:
     self.trades = pd.DataFrame(np.zeros(shape=(Nbuys,4)), columns=["Buy date","Buy price","Sell date","Sell price"])
     self.trades["Buy date"] = self.data.loc[sorted_signals["Buy"],"Date"].reset_index(drop=True)
     self.trades["Buy price"] = self.data.loc[sorted_signals["Buy"],"Close"].reset_index(drop=True)
-    print(sorted_signals["Sell"])
     self.trades["Sell date"] = self.data.loc[sorted_signals["Sell"],"Date"].reset_index(drop=True)
     self.trades["Sell price"] = self.data.loc[sorted_signals["Sell"],"Close"].reset_index(drop=True)
     # Check if the SL got triggered before the Sell date for each trade, if so, overwrite the Date and Price
