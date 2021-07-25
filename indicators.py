@@ -28,8 +28,7 @@ def ema(x, w, price="Close"):
     # w - size of ema
     # price - strong, name of which column to use, default "Close"
     result = x.loc[:, ["Date"]]
-    result["EMA"] = x[price].ewm(span=w, adjust=False).mean()
-    result.loc[:w,["EMA"]] = np.NaN
+    result["EMA"] = x[price].ewm(span=w, adjust=False, min_periods=w).mean()
     return result
 
 # MACD
@@ -91,6 +90,26 @@ def bollbands(x, period=20, stdn=2):
 
     return result
 
+# Relative Strength Index
+def rsi(x, w=14, price="Close", ema=True):
+    result = x.loc[:, ["Date"]]
+    delta = x[price].diff()
+    # Make two series: one for lower closes and one for higher closes
+    up = delta.clip(lower=0)
+    down = -1 * delta.clip(upper=0)
+    if ema is True:
+        # Use exponential moving average
+        ma_up = up.ewm(span=w, adjust=False, min_periods=w).mean()
+        ma_down = down.ewm(span=w, adjust=False, min_periods=w).mean()
+    else:
+        # Use simple moving average
+        ma_up = up.rolling(w).mean()
+        ma_down = down.rolling(w).mean()
+    # calculate RSI
+    rs = ma_up / ma_down
+    result["RSI"] = 100 - (100/(1 + rs))
+    return result 
+
 # TESTING RUNTIME
 def main():
     # import only for this function
@@ -119,7 +138,11 @@ def main():
     bb = bollbands(stock.data)
     print("Bollinger bands calculation took " + str(np.round(time.time()-start,3)) + " sec.")
 
-    fig, ax = plt.subplots(nrows=4)
+    start = time.time()
+    rs = rsi(stock.data)
+    print("RSI calculation took " + str(np.round(time.time()-start,3)) + " sec.")
+
+    fig, ax = plt.subplots(nrows=5)
     # plot stock + sma / ema
     ax[0].plot(stock.data["Close"], label="Close")
     ax[0].plot(bb["lower"], label="bb low")
@@ -142,6 +165,8 @@ def main():
     ax[3].scatter(ms.index, ms["yellow"], color="yellow", marker="1", alpha=0.5)
     ax[3].scatter(ms.index, ms["red"], color="red", marker="1", alpha=0.5)
     ax[3].set(ylim=(0.9, 1.1))
+    # plot rsi
+    ax[4].plot(rs["RSI"])
     plt.show()
     return
 
