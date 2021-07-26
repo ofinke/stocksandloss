@@ -146,8 +146,12 @@ class Analyzer:
         if buySignal[j]==1:
           k = j
           d.loc[Buy_number,["Buy"]]=j      
-          while sellSignal[Buy_number,k+1]==0: k = k+1 #we save the index in the sell signal vector where it is 1 after the buy
-          d.loc[Buy_number,["Sell"]]=k
+          while sellSignal[Buy_number,k]==0: 
+            k = k+1 
+            if k>len(sellSignal[Buy_number,])-1: 
+              break#we save the index in the sell signal vector where it is 1 after the buy
+          if k<=len(sellSignal[Buy_number,])-1:
+            d.loc[Buy_number,["Sell"]]=k
           Buy_number += 1         
     else:
       helper = 0
