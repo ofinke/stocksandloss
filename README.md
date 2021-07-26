@@ -34,4 +34,7 @@ Function | Parameters | Output columns | Description
 
 Other indicators will be added in the future
 
+# Buy & Sell signals
+This section describes viable buy and sell signals developed and tested by this system
+
 # Analyzer

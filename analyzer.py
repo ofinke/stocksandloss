@@ -94,6 +94,24 @@ class Analyzer:
     buySignal = (macd["signal"] < 0).astype("int") & machange & (mcs["blue"] | mcs["green"])
     return buySignal.astype("int").to_numpy()
   
+  def methodBuy_pvdiv(self):
+    w = 10 # window
+    # close price
+    dt = self.data["Close"].to_numpy()
+    ap = np.polyfit(np.arange(w), np.lib.stride_tricks.as_strided(dt, (len(dt)-w+1, w), dt.strides+dt.strides).T, deg = 1)[0]
+    e = np.empty(w-1)
+    e[:] = np.NaN
+    ap = np.concatenate([e, ap])
+    # volume
+    dt = self.data["Volume"].to_numpy()
+    vp = np.polyfit(np.arange(w), np.lib.stride_tricks.as_strided(dt, (len(dt)-w+1, w), dt.strides+dt.strides).T, deg = 1)[0]
+    vp = np.concatenate([e, vp])
+
+    bs = (vp > 0) & (ap < 0)
+    # buy signal when true changes to false
+    change = np.concatenate((np.array([0]), (bs[:-1] < bs[1:]).astype("int")))
+    return change
+
   def methodSell_Mcstoch(self):
     # McStoch sell signal
     # red day is a sell signal
@@ -184,7 +202,9 @@ class Analyzer:
       elif buyStrategy[j] == 'Mcstoch_ut4':
           buyHelper = self.methodBuy_Mcstoch_ut4()    
       elif buyStrategy[j] == 'Mcstoch_dt1':
-          buyHelper = self.methodBuy_Mcstoch_dt1()  
+          buyHelper = self.methodBuy_Mcstoch_dt1() 
+      elif buyStrategy[j] == 'pvdiv':
+          buyHelper = self.methodBuy_pvdiv() 
       else:
           print('This buy method is not impplemented')                 
       if j==0:
