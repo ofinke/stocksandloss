@@ -188,7 +188,7 @@ class Analyzer:
     while d["Sell"].iloc[-1]==0: d = d[:-1]   #we delete the last rows where the trades were not yet closed
     return d
   
-  def strategy(self,sorted_signals,*,stopLoss=False,stopLossValue=0,profitTaker=False,profitTakerValue=0,repeated_buys=True):
+  def strategy(self,sorted_signals,*,stopLoss=False,stopLossValue=0,profitTaker=False,profitTakerValue=0):
     Nbuys = len(sorted_signals["Buy"])
     self.trades = pd.DataFrame(np.zeros(shape=(Nbuys,4)), columns=["Buy date","Buy price","Sell date","Sell price"])
     self.trades["Buy date"] = self.data.loc[sorted_signals["Buy"],"Date"].reset_index(drop=True)
