@@ -117,7 +117,7 @@ class Analyzer:
   def mb_stoch(self, period=14, sk=3, sd=5, treshold=20, tcross="d"):
     # buy signal when k crosses d and is above certain treshold
     so = indicators.stoch(self.data, period=period, sk=sk, sd=sd)
-    conditions = np.logical_and((so["k"] > so["d"]).to_numpy(), (so[tcross] >= treshold).to_numpy())
+    conditions = np.logical_and((so["k"] > so["d"]).to_numpy(), (so[tcross] <= treshold).to_numpy())
     return np.concatenate((np.array([0]), (conditions[:-1] < conditions[1:]))).astype("int")
 
 
@@ -203,15 +203,15 @@ class Analyzer:
       zero_data = np.zeros(shape=(np.sum(buySignal),2))
       Buy_number = 0
       d = pd.DataFrame(zero_data, columns=["Buy","Sell"])
-      for j in range(0,len(buySignal)): #we go through the whole buySignal vector
+      for j in range(0,len(buySignal)-1): #we go through the whole buySignal vector
         if buySignal[j]==1 and helper==0:
           helper = 1
           k = j
           d.loc[Buy_number,["Buy"]]=j      
-        if sellSignal[Buy_number,j]==1 and helper==1:
-          d.loc[Buy_number,["Sell"]]=j
+        if helper==1 and sellSignal[Buy_number,j+1]==1:
+          d.loc[Buy_number,["Sell"]]=j+1
           helper = 0
-          Buy_number += 1 
+          Buy_number += 1
     while d["Sell"].iloc[-1]==0: d = d[:-1]   #we delete the last rows where the trades were not yet closed
     return d
   
