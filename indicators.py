@@ -113,7 +113,7 @@ def rsi(x, w=14, price="Close", ema=True):
 # TESTING RUNTIME
 def main():
     # import only for this function
-    stock = sc.stock_daily("TSLA")
+    stock = sc.stock_daily("NET", save=False)
     start = time.time()
     x = ema(stock.data, 26)
     print("EMA calculation took " + str(np.round(time.time()-start,3)) + " sec.")
@@ -127,7 +127,7 @@ def main():
     print("MACD calculation took " + str(np.round(time.time()-start,3)) + " sec.")
 
     start = time.time()
-    so = stoch(stock.data)
+    so = stoch(stock.data, period=21, sk=3, sd=5)
     print("Stochastic osc. calculation took " + str(np.round(time.time()-start,3)) + " sec.")
 
     start = time.time()

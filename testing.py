@@ -9,33 +9,40 @@ import matplotlib.pyplot as plt
 import time
 
 # ----------------------------------------
-# TESTING VOL PRICE DIVERGENCE BUY SIGNALS
-stock = sc.stock_daily("TSLA")
+# building buy sell strategy based on stochastic oscilator nad up/down trend
+stock = sc.stock_daily("TSLA", save=False)
 
-# fit close and volume by linear function
-# use rolling() to fit only certain number of days
-# buy signal next day if a for volume > 0 and for price < 0
+f = ind.sma(stock.data, w=5)["SMA"].to_numpy()
+s = ind.sma(stock.data, w=10)["SMA"].to_numpy()
 
-w = 10 # window
-# close price
-dt = stock.data["Close"].to_numpy()
-ap = np.polyfit(np.arange(w), as_strided(dt, (len(dt)-w+1, w), dt.strides+dt.strides).T, deg = 1)[0]
-e = np.empty(w-1)
-e[:] = np.NaN
-ap = np.concatenate([e, ap])
-# volume
-dt = stock.data["Volume"].to_numpy()
-vp = np.polyfit(np.arange(w), as_strided(dt, (len(dt)-w+1, w), dt.strides+dt.strides).T, deg = 1)[0]
-vp = np.concatenate([e, vp])
+condition = f < s
+change = np.concatenate((np.array([0]), (condition[:-1] < condition[1:]))).astype("int")
 
-bs = (vp > 0) & (ap < 0)
-# buy signal when true changes to false
-change = np.concatenate((np.array([0]), (bs[:-1] < bs[1:]).astype("int")))
-
-# print(len(stock.data["Close"].to_numpy()))
-print(bs)
+print()
 
 
+# # ----------------------------------------
+# # TESTING VOL PRICE DIVERGENCE BUY SIGNALS
+# stock = sc.stock_daily("TSLA")
+# # fit close and volume by linear function
+# # use rolling() to fit only certain number of days
+# # buy signal next day if a for volume > 0 and for price < 0
+# w = 10 # window
+# # close price
+# dt = stock.data["Close"].to_numpy()
+# ap = np.polyfit(np.arange(w), as_strided(dt, (len(dt)-w+1, w), dt.strides+dt.strides).T, deg = 1)[0]
+# e = np.empty(w-1)
+# e[:] = np.NaN
+# ap = np.concatenate([e, ap])
+# # volume
+# dt = stock.data["Volume"].to_numpy()
+# vp = np.polyfit(np.arange(w), as_strided(dt, (len(dt)-w+1, w), dt.strides+dt.strides).T, deg = 1)[0]
+# vp = np.concatenate([e, vp])
+# bs = (vp > 0) & (ap < 0)
+# # buy signal when true changes to false
+# change = np.concatenate((np.array([0]), (bs[:-1] < bs[1:]).astype("int")))
+# # print(len(stock.data["Close"].to_numpy()))
+# print(bs)
 
 # ----------------------------------------
 # stock = sc.stock_daily("TSLA")
