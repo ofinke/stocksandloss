@@ -10,6 +10,8 @@ class Analyzer:
     self.data = data
     self.ticker = ticker
 
+    # ======== BUY SIGNAL METHODS ========
+
   def methodBuy_Simple(self): #first trading strategy for generating buy/sell signals, todo: name the methods
     buySignal = np.zeros(self.data["Close"].size, dtype=int)
     #signal = macd.ewm(span=sig, adjust=False).mean()
@@ -23,7 +25,7 @@ class Analyzer:
     # Previous day red and today green
     buySignal = np.zeros(self.data["Close"].size, dtype=int)
     # calculate mcstoch
-    mcs = indicators.mcstoch(self.data, fl=12, sl=26, sig=9, price="Close", period=14, sk=2, sd=4)
+    mcs = indicators.mcstoch(self.data, fl=12, sl=26, sig=9, price="Close", period=21, sk=3, sd=5)
     macd = indicators.macd(self.data, fl=12, sl=26, sig=9, price="Close")
     # find changes from red days to green days
     gchange = np.concatenate((np.array([0]), (mcs["green"].to_numpy()[:-1] < mcs["green"].to_numpy()[1:]).astype("int")))
@@ -37,7 +39,7 @@ class Analyzer:
     # previous day red, today blue and close higher
     buySignal = np.zeros(self.data["Close"].size, dtype=int)
     # calculate mcstoch
-    mcs = indicators.mcstoch(self.data, fl=12, sl=26, sig=9, price="Close", period=14, sk=2, sd=4)
+    mcs = indicators.mcstoch(self.data, fl=12, sl=26, sig=9, price="Close", period=21, sk=3, sd=5)
     macd = indicators.macd(self.data, fl=12, sl=26, sig=9, price="Close")
     # find changes from red day to blue day
     bchange = np.concatenate((np.array([0]), (mcs["blue"].to_numpy()[:-1] < mcs["blue"].to_numpy()[1:]).astype("int")))
@@ -52,7 +54,7 @@ class Analyzer:
     # previous day blue, today green 
     buySignal = np.zeros(self.data["Close"].size, dtype=int)
     # calculate mcstoch
-    mcs = indicators.mcstoch(self.data, fl=12, sl=26, sig=9, price="Close", period=14, sk=2, sd=4)
+    mcs = indicators.mcstoch(self.data, fl=12, sl=26, sig=9, price="Close", period=21, sk=3, sd=5)
     macd = indicators.macd(self.data, fl=12, sl=26, sig=9, price="Close")
     # find changes from blue days to green days
     gchange = np.concatenate((np.array([0]), (mcs["green"].to_numpy()[:-1] < mcs["green"].to_numpy()[1:]).astype("int")))
@@ -66,7 +68,7 @@ class Analyzer:
     # previous day blue a close < open, today blue and close > open 
     buySignal = np.zeros(self.data["Close"].size, dtype=int)
     # calculate mcstoch
-    mcs = indicators.mcstoch(self.data, fl=12, sl=26, sig=9, price="Close", period=14, sk=2, sd=4)
+    mcs = indicators.mcstoch(self.data, fl=12, sl=26, sig=9, price="Close", period=21, sk=3, sd=5)
     macd = indicators.macd(self.data, fl=12, sl=26, sig=9, price="Close")
     # find green and red candle days
     gcandle = (self.data["Close"] > self.data["Open"]).to_numpy().astype("int")
@@ -83,7 +85,7 @@ class Analyzer:
     # previous day close pod ema50 and today close > ema50 and green or blue day
     buySignal = np.zeros(self.data["Close"].size, dtype=int)
     # calculate required indicators
-    mcs = indicators.mcstoch(self.data, fl=12, sl=26, sig=9, price="Close", period=14, sk=2, sd=4)
+    mcs = indicators.mcstoch(self.data, fl=12, sl=26, sig=9, price="Close", period=21, sk=3, sd=5)
     macd = indicators.macd(self.data, fl=12, sl=26, sig=9, price="Close")
     ma = indicators.ema(self.data, 50)
     # find days where ema 50 > close 
@@ -112,6 +114,15 @@ class Analyzer:
     change = np.concatenate((np.array([0]), (bs[:-1] < bs[1:]).astype("int")))
     return change
 
+  def mb_stoch(self, period=14, sk=3, sd=5, treshold=20, tcross="d"):
+    # buy signal when k crosses d and is above certain treshold
+    so = indicators.stoch(self.data, period=period, sk=sk, sd=sd)
+    conditions = np.logical_and((so["k"] > so["d"]).to_numpy(), (so[tcross] >= treshold).to_numpy())
+    return np.concatenate((np.array([0]), (conditions[:-1] < conditions[1:]))).astype("int")
+
+
+# ======== SELL SIGNAL METHODS ========
+
   def methodSell_Mcstoch(self):
     # McStoch sell signal
     # red day is a sell signal
@@ -126,6 +137,22 @@ class Analyzer:
     zero_crossings = np.add(np.where(np.diff(np.sign(macd["signal"]))<0),1) #calculates indexes where macd signal crossed zero to positive, +1 to get the correct day
     sellSignal[zero_crossings[0]] = 1
     return sellSignal
+
+  def ms_smacross(self, fast=5, slow=10):
+    f = indicators.sma(self.data, w=fast)["SMA"].to_numpy()
+    s = indicators.sma(self.data, w=slow)["SMA"].to_numpy()
+    condition = f < s
+    # np.concatenate((np.array([0]), (condition[:-1] < condition[1:]))).astype("int")
+    # currently outputs sell signal everytime this condtion is met
+    return condition.astype("int")
+
+  def ms_emacross(self, fast=5, slow=10):
+    f = indicators.ema(self.data, w=fast)["EMA"].to_numpy()
+    s = indicators.ema(self.data, w=slow)["EMA"].to_numpy()
+    condition = f < s
+    # np.concatenate((np.array([0]), (condition[:-1] < condition[1:]))).astype("int")
+    # currently outputs sell signal everytime this condtion is met
+    return condition.astype("int")
 
   # takes buy signals from self.trades and checks if stop loss is triggered
   # if its triggered sooner than defined stop loss, overwrites it
