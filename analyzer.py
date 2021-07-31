@@ -228,7 +228,13 @@ class Analyzer:
     if bool(profitTaker):
       self.profitTaker(profitValue=profitTakerValue)  
     return  
-  
+  def bouncesFrom_SMA(self,sma):
+    smaLine = indicators.sma(self.data,sma,price="Close")
+    bounces = np.where(np.abs(self.data["Low"]-smaLine["SMA"])/smaLine["SMA"]<0.01)[0]
+    for i in range(1,bounces.size):
+      if bounces[i] - bounces[i-1] < 10:
+        bounces = np.delete(bounces,i)
+    return bounces
   def profit(self,capitalForEachTrade,comission):   #method for calculating profit, inputs: how much money is spent on each trade and the name of the trading strategy
     outputFrame = pd.DataFrame(np.zeros(shape=(len(self.trades["Buy date"]),11)), columns=["Buy date","Buy price","Buy value","Position","Sell date","Sell price","Sell value","Comission","Good trade?","Profit[%]","Profit[$]"])
     outputFrame["Buy date"] = self.trades["Buy date"]
