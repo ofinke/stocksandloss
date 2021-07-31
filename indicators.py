@@ -110,6 +110,32 @@ def rsi(x, w=14, price="Close", ema=True):
     result["RSI"] = 100 - (100/(1 + rs))
     return result 
 
+# Volume Flow Indicator
+# tbh I don't understand this calculation much
+# Corresponds to lazybears implementation on tradingview
+def vfi(x, period=40, coef=0.2, vcoef=2.5, ssmooth=5):
+    
+    result = x.loc[:, ["Date"]]
+
+    tp = (x["High"] + x["Low"] + x["Close"])/3  # typical price
+    inter = np.log(tp) - np.log(np.concatenate([np.array([np.NaN]),tp[:-1]]))
+    vinter = inter.rolling(30).std()
+    cutoff = coef * vinter * x["Close"]
+    vave = x["Volume"].rolling(period).mean().shift(1)
+
+    vmax = vave * vcoef
+    vc = x["Volume"].where(x["Volume"] < vmax, vmax) # replaces volume spikes by max allowed volume 
+
+    mf = tp - np.concatenate([np.array([np.NaN]),tp[:-1]]) # same as inter, without the logs
+    vcp = vc.where(mf > cutoff, -vc.where(mf < -cutoff, 0))
+    vcp[:period] = np.NaN # put NaNs in the beginning as they are replaced by 0 due to bool logic
+
+    result["vfi"] = (vcp.rolling(period).sum() / vave).rolling(3).mean()
+    result["vfi_smooth"] = result["vfi"].ewm(span=ssmooth, adjust=False, min_periods=ssmooth).mean()
+    result["histogram"] = result["vfi"] - result["vfi_smooth"]
+
+    return result
+
 # TESTING RUNTIME
 def main():
     # import only for this function

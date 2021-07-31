@@ -31,6 +31,7 @@ Function | Parameters | Output columns | Description
 ```mcstoch()``` | Same inputs as ```macd()``` and ```stoch()``` | ```"green", "yellow", "red", "blue"``` | Combination of macd and stoch indicators to filter opportunities
 ```bollbands()``` | *period*: length of data period, def = 20 <br> *stdn*: # of std multipliers, def = 2 | ```"lower", "upper"``` | Bollinger bands as defined by [investopedia](https://www.investopedia.com/terms/b/bollingerbands.asp) 
 ```rsi()``` | *w*: period length, def = 14 <br> *price*: which column to use, def=```"Close"``` <br> *ema*: use sma or ema, bool, def = True | ```"RSI"``` | Relative strength index, code copied and modified from [here](https://www.roelpeters.be/many-ways-to-calculate-the-rsi-in-python-pandas/)
+```vfi()``` | *period*: lookback period, def = 40 <br> *coef*: to be explained, def = 0.2 <br> *vcoef*: unusual volume levels limiter, def = 2.5 <br> *ssmooth*: = smoothing for ema, def = 5 | ```"vfi", "vfi_smooth, "histogram"``` | Volume flow indicator by Markos Katsanos. Code based on [tradingview indicator](https://www.tradingview.com/script/MhlDpfdS-Volume-Flow-Indicator-LazyBear/). <br> More information about the indicator can be found [here](https://precisiontradingsystems.com/volume-flow.htm) and [here](https://www.thatsucks.com/volume-flow-indicator-following-the-crowd-isnt-so-bad/)
 
 Other indicators will be added in the future
 
