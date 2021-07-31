@@ -132,7 +132,7 @@ def vfi(x, period=40, coef=0.2, vcoef=2.5, ssmooth=5):
 
     result["vfi"] = (vcp.rolling(period).sum() / vave).rolling(3).mean()
     result["vfi_smooth"] = result["vfi"].ewm(span=ssmooth, adjust=False, min_periods=ssmooth).mean()
-    result["histo"] = result["vfi"] - result["vfi_smooth"]
+    result["histogram"] = result["vfi"] - result["vfi_smooth"]
 
     return result
 
