@@ -117,7 +117,7 @@ class Analyzer:
   def mb_stoch(self, period=14, sk=3, sd=5, treshold=20, tcross="d"):
     # buy signal when k crosses d and is above certain treshold
     so = indicators.stoch(self.data, period=period, sk=sk, sd=sd)
-    conditions = np.logical_and((so["k"] > so["d"]).to_numpy(), (so[tcross] <= treshold).to_numpy())
+    conditions = np.logical_and((so["k"] > so["d"]).to_numpy(), (so[tcross] >= treshold).to_numpy())
     return np.concatenate((np.array([0]), (conditions[:-1] < conditions[1:]))).astype("int")
 
 
