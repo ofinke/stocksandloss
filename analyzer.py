@@ -120,6 +120,12 @@ class Analyzer:
     conditions = np.logical_and((so["k"] > so["d"]).to_numpy(), (so[tcross] >= treshold).to_numpy())
     return np.concatenate((np.array([0]), (conditions[:-1] < conditions[1:]))).astype("int")
 
+  def mb_smacross(self, fast=5, slow=10):
+    f = indicators.sma(self.data, w=fast)["SMA"].to_numpy()
+    s = indicators.sma(self.data, w=slow)["SMA"].to_numpy()
+    condition = f > s
+    res = np.concatenate((np.array([0]), (condition[:-1] < condition[1:]))).astype("int")
+    return res
 
 # ======== SELL SIGNAL METHODS ========
 

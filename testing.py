@@ -20,48 +20,48 @@ import time
 # print(lol - np.concatenate([np.array([np.NaN]),lol[:-1]]))
 
 # settings
-coef = 0.2
-vcoef = 2.5
-w = 40
+# coef = 0.2
+# vcoef = 2.5
+# w = 40
 
-stock = sc.stock_daily("TSLA", save=False)
+# stock = sc.stock_daily("TSLA", save=False)
 
-tp = (stock.data["High"] + stock.data["Low"] + stock.data["Close"])/3  # typical price
-inter = np.log(tp) - np.log(np.concatenate([np.array([np.NaN]),tp[:-1]]))
-vinter = inter.rolling(30).std()
-cutoff = coef * vinter * stock.data["Close"]
-vave = stock.data["Volume"].rolling(w).mean().shift(1)
+# tp = (stock.data["High"] + stock.data["Low"] + stock.data["Close"])/3  # typical price
+# inter = np.log(tp) - np.log(np.concatenate([np.array([np.NaN]),tp[:-1]]))
+# vinter = inter.rolling(30).std()
+# cutoff = coef * vinter * stock.data["Close"]
+# vave = stock.data["Volume"].rolling(w).mean().shift(1)
 
-vmax = vave * vcoef
-vc = stock.data["Volume"].where(stock.data["Volume"] < vmax, vmax) # replaces volume spikes by max allowed volume 
+# vmax = vave * vcoef
+# vc = stock.data["Volume"].where(stock.data["Volume"] < vmax, vmax) # replaces volume spikes by max allowed volume 
 
-mf = tp - np.concatenate([np.array([np.NaN]),tp[:-1]]) # same as inter, without the logs
-vcp = vc.where(mf > cutoff, -vc.where(mf < -cutoff, 0))
-vcp[:w] = np.NaN # put NaNs in the beginning as they are replaced by 0 due to bool logic
+# mf = tp - np.concatenate([np.array([np.NaN]),tp[:-1]]) # same as inter, without the logs
+# vcp = vc.where(mf > cutoff, -vc.where(mf < -cutoff, 0))
+# vcp[:w] = np.NaN # put NaNs in the beginning as they are replaced by 0 due to bool logic
 
-vfi = (vcp.rolling(w).sum() / vave).rolling(3).mean()
-vfiema = vfi.ewm(span=5, adjust=False, min_periods=5).mean()
-histo = vfi - vfiema
+# vfi = (vcp.rolling(w).sum() / vave).rolling(3).mean()
+# vfiema = vfi.ewm(span=5, adjust=False, min_periods=5).mean()
+# histo = vfi - vfiema
 
-print(vfi)
-print(vfiema)
-print(histo)
+# print(vfi)
+# print(vfiema)
+# print(histo)
 
 # plt.plot(stock.data["Volume"])
 # plt.plot(vc)
 # plt.plot(vcp)
 
-fig, ax = plt.subplots(nrows=2)
+# fig, ax = plt.subplots(nrows=2)
 
-ax[0].plot(stock.data["Close"])
-ax[0].set_xlim([0, stock.data.shape[0]])
+# ax[0].plot(stock.data["Close"])
+# ax[0].set_xlim([0, stock.data.shape[0]])
 
-ax[1].plot(vfi)
-ax[1].plot(vfiema)
-ax[1].plot(histo)
-ax[1].set_xlim([0, stock.data.shape[0]])
+# ax[1].plot(vfi)
+# ax[1].plot(vfiema)
+# ax[1].plot(histo)
+# ax[1].set_xlim([0, stock.data.shape[0]])
 
-plt.show()
+# plt.show()
 
 # ----------------------------------------
 # building buy sell strategy based on stochastic oscilator nad up/down trend
@@ -74,6 +74,29 @@ plt.show()
 # change = np.concatenate((np.array([0]), (condition[:-1] < condition[1:]))).astype("int")
 
 # print()
+
+# ----------------------------------------
+# building buy sell strategy based on sma crosses
+stock = sc.stock_daily("TSLA", save=False)
+
+f = ind.sma(stock.data, w=5)["SMA"].to_numpy()
+s = ind.sma(stock.data, w=10)["SMA"].to_numpy()
+
+condition = f > s
+res = np.concatenate((np.array([0]), (condition[:-1] < condition[1:]))).astype("int")
+i = np.squeeze(np.argwhere(res==1))
+
+fig, ax = plt.subplots(nrows=2)
+ax[0].plot(stock.data["Close"])
+ax[0].set_xlim([0, stock.data.shape[0]])
+ax[1].plot(f)
+ax[1].plot(s)
+ax[1].scatter(i, f[i])
+ax[1].set_xlim([0, stock.data.shape[0]])
+plt.show()
+
+# condition = f < s
+# change = np.concatenate((np.array([0]), (condition[:-1] < condition[1:]))).astype("int")
 
 
 # # ----------------------------------------
