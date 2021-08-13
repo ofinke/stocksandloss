@@ -236,7 +236,7 @@ class Analyzer:
         bounces = np.delete(bounces,i)
     return bounces
   def profit(self,capitalForEachTrade,comission):   #method for calculating profit, inputs: how much money is spent on each trade and the name of the trading strategy
-    outputFrame = pd.DataFrame(np.zeros(shape=(len(self.trades["Buy date"]),11)), columns=["Buy date","Buy price","Buy value","Position","Sell date","Sell price","Sell value","Comission","Good trade?","Profit[%]","Profit[$]"])
+    outputFrame = pd.DataFrame(np.zeros(shape=(len(self.trades["Buy date"]),11)), columns=["Buy date","Buy price","Buy value","Position","Sell date","Sell price","Sell value","Comission","Good trade?","Profit[$]","Profit[%]"])
     outputFrame["Buy date"] = self.trades["Buy date"]
     outputFrame["Buy price"] = self.trades["Buy price"]
     outputFrame["Sell date"] = self.trades["Sell date"]
@@ -247,6 +247,6 @@ class Analyzer:
     outputFrame["Comission"] = comission
     outputFrame.loc[outputFrame["Sell value"]>outputFrame["Buy value"] ,"Good trade?"] = 1
     outputFrame["Profit[$]"] = outputFrame["Sell value"]-outputFrame["Buy value"]-outputFrame["Comission"]
-    outputFrame["Profit[%]"] = 100*outputFrame["Profit[$]"]/outputFrame["Buy value"]
+    outputFrame["Profit[%]"] = 100*(outputFrame["Profit[$]"]/outputFrame["Buy value"])
     return outputFrame
 
