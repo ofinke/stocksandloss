@@ -232,7 +232,7 @@ class Analyzer:
     smaLine = indicators.sma(self.data,sma,price="Close")
     bounces = np.where(np.abs(self.data["Low"]-smaLine["SMA"])/smaLine["SMA"]<0.01)[0]
     for i in range(1,bounces.size):
-      if bounces[i] - bounces[i-1] < 10:
+      if bounces[i] - bounces[i-1] < sma/10:
         bounces = np.delete(bounces,i)
     return bounces
   def profit(self,capitalForEachTrade,comission):   #method for calculating profit, inputs: how much money is spent on each trade and the name of the trading strategy
