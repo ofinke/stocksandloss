@@ -11,10 +11,14 @@ import time
 import yfinance as yf
 
 # ----------------------------------------
-# testing yfinance options scraping
-stock = yf.Ticker("MSFT")
-dates = stock.options
-f = stock.option_chain(dates[0])
+ar = np.zeros(10)
+ar[2] = 1
+ar[6] = 1
+ar = ar.astype(bool)
+last = np.squeeze(np.where(ar == True))[-1]
+
+stock = sc.stock_daily("TSLA", save=False)
+print()
 
 
 # ----------------------------------------
