@@ -8,6 +8,14 @@ import pandas as pd
 from numpy.lib.stride_tricks import as_strided
 import matplotlib.pyplot as plt
 import time
+import yfinance as yf
+
+# ----------------------------------------
+# testing yfinance options scraping
+stock = yf.Ticker("MSFT")
+dates = stock.options
+f = stock.option_chain(dates[0])
+
 
 # ----------------------------------------
 # writing VFI
@@ -77,23 +85,23 @@ import time
 
 # ----------------------------------------
 # building buy sell strategy based on sma crosses
-stock = sc.stock_daily("TSLA", save=False)
+# stock = sc.stock_daily("TSLA", save=False)
 
-f = ind.sma(stock.data, w=5)["SMA"].to_numpy()
-s = ind.sma(stock.data, w=10)["SMA"].to_numpy()
+# f = ind.sma(stock.data, w=5)["SMA"].to_numpy()
+# s = ind.sma(stock.data, w=10)["SMA"].to_numpy()
 
-condition = f > s
-res = np.concatenate((np.array([0]), (condition[:-1] < condition[1:]))).astype("int")
-i = np.squeeze(np.argwhere(res==1))
+# condition = f > s
+# res = np.concatenate((np.array([0]), (condition[:-1] < condition[1:]))).astype("int")
+# i = np.squeeze(np.argwhere(res==1))
 
-fig, ax = plt.subplots(nrows=2)
-ax[0].plot(stock.data["Close"])
-ax[0].set_xlim([0, stock.data.shape[0]])
-ax[1].plot(f)
-ax[1].plot(s)
-ax[1].scatter(i, f[i])
-ax[1].set_xlim([0, stock.data.shape[0]])
-plt.show()
+# fig, ax = plt.subplots(nrows=2)
+# ax[0].plot(stock.data["Close"])
+# ax[0].set_xlim([0, stock.data.shape[0]])
+# ax[1].plot(f)
+# ax[1].plot(s)
+# ax[1].scatter(i, f[i])
+# ax[1].set_xlim([0, stock.data.shape[0]])
+# plt.show()
 
 # condition = f < s
 # change = np.concatenate((np.array([0]), (condition[:-1] < condition[1:]))).astype("int")
