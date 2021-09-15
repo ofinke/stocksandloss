@@ -255,4 +255,3 @@ class Analyzer:
     outputFrame["Profit[$]"] = outputFrame["Sell value"]-outputFrame["Buy value"]-outputFrame["Comission"]
     outputFrame["Profit[%]"] = 100*(outputFrame["Profit[$]"]/outputFrame["Buy value"])
     return outputFrame
-
