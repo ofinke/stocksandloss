@@ -6,21 +6,73 @@ import indicators as ind
 import pandas as pd
 import numpy as np
 
-def show_indices():
-    spy = stock_daily("SPY")
-    iwm = stock_daily("IWM")
+def show_sectors():
+    # define figure
+    fig, ax = plt.subplots(ncols=3, nrows=4, figsize=(25,18))
 
+    indices = ["XLC", "XLY", "XLP", "XLE", "XLF", "XLV", "XLI", "XLB", "XLRE", "XLK", "XLU"]
+    names = ["XLC = Communication Services", "XLY = Consumer Discretionary", "XLP = Consumer Staples", "XLE = Energy", "XLF = Financial", "XLV = Health", "XLI = Industrial", "XLB = Materials", "XLRE = Real Estate", "XLK = Technology ", "XLU = Utilities"]
+    axpos = [[0,0], [0,1], [0,2], [1,0], [1,1], [1,2], [2,0], [2,1], [2,2], [3,0], [3,1], [3,2]]
+
+    for i, val in enumerate(indices):
+        sector = stock_daily(val, save=False)
+        # red and green days
+        green = sector.data.index.where(sector.data["Close"] >= sector.data["Open"])
+        red = sector.data.index.where(sector.data["Close"] < sector.data["Open"])
+        sma = ind.sma(sector.data, 100)["SMA"]
+        ax[axpos[i][0],axpos[i][1]].vlines(green, sector.data["Low"], sector.data["High"], color="g")
+        ax[axpos[i][0],axpos[i][1]].scatter(green, sector.data["Open"], marker="_", color="g", s=10)
+        ax[axpos[i][0],axpos[i][1]].scatter(green, sector.data["Close"], marker="_", color="g", s=10)
+        ax[axpos[i][0],axpos[i][1]].vlines(red, sector.data["Low"], sector.data["High"], color="r")
+        ax[axpos[i][0],axpos[i][1]].scatter(red, sector.data["Open"], marker="_", color="r", s=10)
+        ax[axpos[i][0],axpos[i][1]].scatter(red, sector.data["Close"], marker="_", color="r", s=10)
+        ax[axpos[i][0],axpos[i][1]].plot(sma, color="b")
+        ax[axpos[i][0],axpos[i][1]].plot(ind.ema(sector.data, 13)["EMA"], "y")
+        ax[axpos[i][0],axpos[i][1]].plot(ind.ema(sector.data, 26)["EMA"], color="tab:orange")
+        axy = ax[axpos[i][0],axpos[i][1]].twinx()
+        axy.vlines(red, 0, sector.data["Volume"], color="r", alpha=0.5)
+        axy.vlines(green, 0, sector.data["Volume"], color="g", alpha=0.5)
+        axy.set_ylim([0, np.max(sector.data["Volume"][150:])*3.5])
+        axy.set_yticklabels([])
+        axy.set_yticks([])
+        ax[axpos[i][0],axpos[i][1]].set_title(names[i], fontsize=20)
+        ax[axpos[i][0],axpos[i][1]].set_xlim([150, sector.data.shape[0]])
+        ax[axpos[i][0],axpos[i][1]].set_ylim([np.min(sector.data["Low"][150:])*0.9, np.max(sector.data["High"][150:])*1.05])
+
+    ax[3,2].axis("off") 
+
+    plt.show()
+
+def show_usmarkets():
+    spy = stock_daily("SPY", save=False)
+    # calculating green and red days
+    green = spy.data.index.where(spy.data["Close"] >= spy.data["Open"])
+    red = spy.data.index.where(spy.data["Close"] < spy.data["Open"])
+    # defining the figures
     fig, ax = plt.subplots(nrows=3, ncols=2, figsize=(25,12), gridspec_kw={'height_ratios': [3, 1, 1]})
     rang = [150, spy.data.shape[0]]
     # SPY
     # plot closed prices and highlighted trades
     sma = ind.sma(spy.data, 100)["SMA"]
-    ax[0,0].plot(spy.data["Close"], color="b")
-    ax[0,0].plot(sma)
+    ax[0,0].vlines(green, spy.data["Low"], spy.data["High"], color="g")
+    ax[0,0].scatter(green, spy.data["Open"], marker="_", color="g", s=10)
+    ax[0,0].scatter(green, spy.data["Close"], marker="_", color="g", s=10)
+    ax[0,0].vlines(red, spy.data["Low"], spy.data["High"], color="r")
+    ax[0,0].scatter(red, spy.data["Open"], marker="_", color="r", s=10)
+    ax[0,0].scatter(red, spy.data["Close"], marker="_", color="r", s=10)
+    ax[0,0].plot(sma, color="b")
+    ax[0,0].plot(ind.ema(spy.data, 13)["EMA"], "y")
+    ax[0,0].plot(ind.ema(spy.data, 26)["EMA"], color="tab:orange")
+    axy = ax[0,0].twinx()
+    axy.vlines(red, 0, spy.data["Volume"], color="r")
+    axy.vlines(green, 0, spy.data["Volume"], color="g")
+    axy.set_ylim([0, np.max(spy.data["Volume"][150:])*3.5])
+    axy.set_yticklabels([])
+    axy.set_yticks([])
     ax[0,0].set_title("SPY", fontsize=20)
     ax[0,0].set_ylabel("Close price [USD]", fontsize=14)
     ax[0,0].set_xlim(rang)
-    ax[0,0].set_ylim([np.min(sma[150:])*0.9, np.max(sma[150:])*1.1])
+    ax[0,0].set_ylim([np.min(spy.data["Low"][150:])*0.9, np.max(spy.data["High"][150:])*1.05])
     # Plot double stochastic oscillator, 21 and 5
     st_fast = ind.stoch(spy.data, period=21, sk=2, sd=5)
     st_slow = ind.stoch(spy.data, period=5, sk=2, sd=3)
@@ -38,24 +90,46 @@ def show_indices():
     ax[1,0].plot(np.arange(spy.data.shape[0]), 20*np.ones(spy.data.shape[0]), "k--", alpha=0.5)
     ax[1,0].set_xlim(rang)
     ax[1,0].set_ylabel("Double stochastic", fontsize=14)
+    ax[1,0].set_xticks([])
+    ax[1,0].set_xticklabels([])
     # plot VFI
     vfi = ind.vfi(spy.data, period=30, coef=0.2, vcoef=1.5)
     ax[2,0].plot(vfi["vfi"])
     ax[2,0].plot(vfi["vfi_smooth"])
-    ax[2,0].plot(np.arange(spy.data.shape[0]), np.zeros(spy.data.shape[0]), "k--", alpha=0.5)
+    ax[2,0].vlines(spy.data.index, 0, vfi["histogram"], "k", alpha=0.5)
     ax[2,0].set_xlim(rang)
-    ax[2,0].set_xlabel("Index [-]", fontsize=16)
     ax[2,0].set_ylabel("VFI", fontsize=14)
+    ax[2,0].set_xticks([])
+    ax[2,0].set_xticklabels([])
+
 
     # IWM
+    iwm = stock_daily("IWM", save=False)
+    # calculating green and red days
+    green = iwm.data.index.where(iwm.data["Close"] >= iwm.data["Open"])
+    red = iwm.data.index.where(iwm.data["Close"] < iwm.data["Open"])
     rang = [150, iwm.data.shape[0]]
     # plot closed prices and highlighted trades
     sma = ind.sma(iwm.data, 100)["SMA"]
-    ax[0,1].plot(iwm.data["Close"], color="b")
-    ax[0,1].plot(sma)
+    ax[0,1].vlines(green, iwm.data["Low"], iwm.data["High"], color="g")
+    ax[0,1].scatter(green, iwm.data["Open"], marker="_", color="g", s=10)
+    ax[0,1].scatter(green, iwm.data["Close"], marker="_", color="g", s=10)
+    ax[0,1].vlines(red, iwm.data["Low"], iwm.data["High"], color="r")
+    ax[0,1].scatter(red, iwm.data["Open"], marker="_", color="r", s=10)
+    ax[0,1].scatter(red, iwm.data["Close"], marker="_", color="r", s=10)
+    ax[0,1].plot(sma, "b")
+    ax[0,1].plot(ind.ema(iwm.data, 13)["EMA"], "y")
+    ax[0,1].plot(ind.ema(iwm.data, 26)["EMA"], color="tab:orange")
+    # volume
+    axy = ax[0,1].twinx()
+    axy.vlines(red, 0, iwm.data["Volume"], color="r")
+    axy.vlines(green, 0, iwm.data["Volume"], color="g")
+    axy.set_ylim([0, np.max(iwm.data["Volume"][150:])*3.5])
+    axy.set_yticklabels([])
+    axy.set_yticks([])
     ax[0,1].set_title("IWM", fontsize=20)
     ax[0,1].set_xlim(rang)
-    ax[0,1].set_ylim([np.min(sma[150:])*0.9, np.max(sma[150:])*1.1])
+    ax[0,1].set_ylim([np.min(iwm.data["Low"][150:])*0.9, np.max(iwm.data["High"][150:])*1.05])
     # Plot double stochastic oscillator, 21 and 5
     st_fast = ind.stoch(iwm.data, period=21, sk=2, sd=5)
     st_slow = ind.stoch(iwm.data, period=5, sk=2, sd=3)
@@ -72,12 +146,15 @@ def show_indices():
     ax[1,1].plot(np.arange(iwm.data.shape[0]), 50*np.ones(iwm.data.shape[0]), "r--", alpha=0.5)
     ax[1,1].plot(np.arange(iwm.data.shape[0]), 20*np.ones(iwm.data.shape[0]), "k--", alpha=0.5)
     ax[1,1].set_xlim(rang)
+    ax[1,1].set_xticks([])
+    ax[1,1].set_xticklabels([])
     # plot VFI
     vfi = ind.vfi(iwm.data, period=30, coef=0.2, vcoef=1.5)
     ax[2,1].plot(vfi["vfi"])
     ax[2,1].plot(vfi["vfi_smooth"])
-    ax[2,1].plot(np.arange(iwm.data.shape[0]), np.zeros(iwm.data.shape[0]), "k--", alpha=0.5)
+    ax[2,1].vlines(iwm.data.index, 0, vfi["histogram"], "k", alpha=0.5)
     ax[2,1].set_xlim(rang)
-    ax[2,1].set_xlabel("Index [-]", fontsize=16)
+    ax[2,1].set_xticks([])
+    ax[2,1].set_xticklabels([])
+
     plt.show()
-    return
