@@ -43,6 +43,41 @@ def show_sectors():
 
     plt.show()
 
+def show_worldmarkets():
+    fig, ax = plt.subplots(ncols=3, nrows=2, figsize=(25,9))
+
+    indices = ["^HSI", "^N225", "STW.AX", "^FTMC", "^GDAXI"]
+    names = ["Hong Kong Hang Seng", "Japan Nikkei 225", "Australia ASX 200", "UK FTSE250", "Germany DAX"]
+    axpos = [[0,0], [0,1], [0,2], [1,0], [1,1]]
+
+    for i, val in enumerate(indices):
+        sector = stock_daily(val, save=False)
+        # red and green days
+        green = sector.data.index.where(sector.data["Close"] >= sector.data["Open"])
+        red = sector.data.index.where(sector.data["Close"] < sector.data["Open"])
+        sma = ind.sma(sector.data, 100)["SMA"]
+        ax[axpos[i][0],axpos[i][1]].vlines(green, sector.data["Low"], sector.data["High"], color="g")
+        ax[axpos[i][0],axpos[i][1]].scatter(green, sector.data["Open"], marker="_", color="g", s=10)
+        ax[axpos[i][0],axpos[i][1]].scatter(green, sector.data["Close"], marker="_", color="g", s=10)
+        ax[axpos[i][0],axpos[i][1]].vlines(red, sector.data["Low"], sector.data["High"], color="r")
+        ax[axpos[i][0],axpos[i][1]].scatter(red, sector.data["Open"], marker="_", color="r", s=10)
+        ax[axpos[i][0],axpos[i][1]].scatter(red, sector.data["Close"], marker="_", color="r", s=10)
+        ax[axpos[i][0],axpos[i][1]].plot(sma, color="b")
+        ax[axpos[i][0],axpos[i][1]].plot(ind.ema(sector.data, 13)["EMA"], "y")
+        ax[axpos[i][0],axpos[i][1]].plot(ind.ema(sector.data, 26)["EMA"], color="tab:orange")
+        axy = ax[axpos[i][0],axpos[i][1]].twinx()
+        axy.vlines(red, 0, sector.data["Volume"], color="r", alpha=0.5)
+        axy.vlines(green, 0, sector.data["Volume"], color="g", alpha=0.5)
+        axy.set_ylim([0, np.max(sector.data["Volume"][150:])*3.5])
+        axy.set_yticklabels([])
+        axy.set_yticks([])
+        ax[axpos[i][0],axpos[i][1]].set_title(names[i], fontsize=20)
+        ax[axpos[i][0],axpos[i][1]].set_xlim([150, sector.data.shape[0]])
+        ax[axpos[i][0],axpos[i][1]].set_ylim([np.min(sector.data["Low"][150:])*0.9, np.max(sector.data["High"][150:])*1.05])
+
+    ax[1,2].axis("off")
+    plt.show()
+
 def show_usmarkets():
     spy = stock_daily("SPY", save=False)
     # calculating green and red days
