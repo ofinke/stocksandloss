@@ -32,8 +32,10 @@ class sectors():
             red = sector.data.index.where(sector.data["Close"] < sector.data["Open"])
             sma = ind.sma(sector.data, 100)["SMA"]
             ax[axpos[i][0],axpos[i][1]].vlines(green, sector.data["Low"], sector.data["High"], color="g")
+            ax[axpos[i][0],axpos[i][1]].vlines(green, sector.data["Open"], sector.data["Close"], color="g", linewidth=3)
             ax[axpos[i][0],axpos[i][1]].scatter(green, sector.data["Open"], marker="_", color="g", s=10)
             ax[axpos[i][0],axpos[i][1]].scatter(green, sector.data["Close"], marker="_", color="g", s=10)
+            
             ax[axpos[i][0],axpos[i][1]].vlines(red, sector.data["Low"], sector.data["High"], color="r")
             ax[axpos[i][0],axpos[i][1]].scatter(red, sector.data["Open"], marker="_", color="r", s=10)
             ax[axpos[i][0],axpos[i][1]].scatter(red, sector.data["Close"], marker="_", color="r", s=10)
