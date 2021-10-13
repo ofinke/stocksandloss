@@ -28,7 +28,10 @@ def ema(x, w, price="Close"):
     # w - size of ema
     # price - strong, name of which column to use, default "Close"
     result = x.loc[:, ["Date"]]
-    result["EMA"] = x[price].ewm(span=w, adjust=False, min_periods=w).mean()
+    if price == "Typical":
+        result["EMA"] = ((x["High"] + x["Low"] + x["Close"])/3).ewm(span=w, adjust=False, min_periods=w).mean()  # typical price
+    else:
+        result["EMA"] = x[price].ewm(span=w, adjust=False, min_periods=w).mean()
     return result
 
 # MACD
@@ -109,6 +112,59 @@ def rsi(x, w=14, price="Close", ema=True):
     rs = ma_up / ma_down
     result["RSI"] = 100 - (100/(1 + rs))
     return result 
+
+# Volume Flow Indicator
+# tbh I don't understand this calculation much
+# Corresponds to lazybears implementation on tradingview
+def vfi(x, period=40, coef=0.2, vcoef=2.5, ssmooth=5):
+    
+    result = x.loc[:, ["Date"]]
+
+    tp = (x["High"] + x["Low"] + x["Close"])/3  # typical price
+    inter = np.log(tp) - np.log(np.concatenate([np.array([np.NaN]),tp[:-1]]))
+    vinter = inter.rolling(30).std()
+    cutoff = coef * vinter * x["Close"]
+    vave = x["Volume"].rolling(period).mean().shift(1)
+
+    vmax = vave * vcoef
+    vc = x["Volume"].where(x["Volume"] < vmax, vmax) # replaces volume spikes by max allowed volume 
+
+    mf = tp - np.concatenate([np.array([np.NaN]),tp[:-1]]) # same as inter, without the logs
+    vcp = vc.where(mf > cutoff, -vc.where(mf < -cutoff, 0))
+    vcp[:period] = np.NaN # put NaNs in the beginning as they are replaced by 0 due to bool logic
+
+    result["vfi"] = (vcp.rolling(period).sum() / vave).rolling(3).mean()
+    result["vfi_smooth"] = result["vfi"].ewm(span=ssmooth, adjust=False, min_periods=ssmooth).mean()
+    result["histogram"] = result["vfi"] - result["vfi_smooth"]
+
+    return result
+
+# plot candles
+# function to create "candlestick" plot 
+def plot_candlestick(ax, axy, stock):
+    green = stock.data.index.where(stock.data["Close"] >= stock.data["Open"])
+    red = stock.data.index.where(stock.data["Close"] < stock.data["Open"])
+    ax.vlines(green, stock.data["Low"], stock.data["High"], color="g")
+    ax.scatter(green, stock.data["Open"], marker="_", color="g", s=10)
+    ax.scatter(green, stock.data["Close"], marker="_", color="g", s=10)
+    ax.vlines(red, stock.data["Low"], stock.data["High"], color="r")
+    ax.scatter(red, stock.data["Open"], marker="_", color="r", s=10)
+    ax.scatter(red, stock.data["Close"], marker="_", color="r", s=10)
+    axy.vlines(red, 0, stock.data["Volume"], color="r", alpha=0.5)
+    axy.vlines(green, 0, stock.data["Volume"], color="g", alpha=0.5)
+    axy.set_ylim([0, np.max(stock.data["Volume"])*3.5])
+    return 
+
+# bounces from SMA
+def sma_bounces(data, smaLine):
+    # calcualtes bounces
+    bounces = np.where(np.abs(data["Low"]-smaLine["SMA"])/smaLine["SMA"]<0.01)[0]
+    # deletes bounces if they are too close?
+    for i in range(1,bounces.size):
+      if bounces[i] - bounces[i-1] < 10:
+        bounces = np.delete(bounces,i)
+
+    return bounces
 
 # TESTING RUNTIME
 def main():

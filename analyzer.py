@@ -117,9 +117,15 @@ class Analyzer:
   def mb_stoch(self, period=14, sk=3, sd=5, treshold=20, tcross="d"):
     # buy signal when k crosses d and is above certain treshold
     so = indicators.stoch(self.data, period=period, sk=sk, sd=sd)
-    conditions = np.logical_and((so["k"] > so["d"]).to_numpy(), (so[tcross] <= treshold).to_numpy())
+    conditions = np.logical_and((so["k"] > so["d"]).to_numpy(), (so[tcross] >= treshold).to_numpy())
     return np.concatenate((np.array([0]), (conditions[:-1] < conditions[1:]))).astype("int")
 
+  def mb_smacross(self, fast=5, slow=10):
+    f = indicators.sma(self.data, w=fast)["SMA"].to_numpy()
+    s = indicators.sma(self.data, w=slow)["SMA"].to_numpy()
+    condition = f > s
+    res = np.concatenate((np.array([0]), (condition[:-1] < condition[1:]))).astype("int")
+    return res
 
 # ======== SELL SIGNAL METHODS ========
 
@@ -254,7 +260,7 @@ class Analyzer:
         levels.append(self.data['Low'][i])
     return levels  
   def profit(self,capitalForEachTrade,comission):   #method for calculating profit, inputs: how much money is spent on each trade and the name of the trading strategy
-    outputFrame = pd.DataFrame(np.zeros(shape=(len(self.trades["Buy date"]),11)), columns=["Buy date","Buy price","Buy value","Position","Sell date","Sell price","Sell value","Comission","Good trade?","Profit[%]","Profit[$]"])
+    outputFrame = pd.DataFrame(np.zeros(shape=(len(self.trades["Buy date"]),11)), columns=["Buy date","Buy price","Buy value","Position","Sell date","Sell price","Sell value","Comission","Good trade?","Profit[$]","Profit[%]"])
     outputFrame["Buy date"] = self.trades["Buy date"]
     outputFrame["Buy price"] = self.trades["Buy price"]
     outputFrame["Sell date"] = self.trades["Sell date"]
@@ -265,6 +271,5 @@ class Analyzer:
     outputFrame["Comission"] = comission
     outputFrame.loc[outputFrame["Sell value"]>outputFrame["Buy value"] ,"Good trade?"] = 1
     outputFrame["Profit[$]"] = outputFrame["Sell value"]-outputFrame["Buy value"]-outputFrame["Comission"]
-    outputFrame["Profit[%]"] = 100*outputFrame["Profit[$]"]/outputFrame["Buy value"]
+    outputFrame["Profit[%]"] = 100*(outputFrame["Profit[$]"]/outputFrame["Buy value"])
     return outputFrame
-
