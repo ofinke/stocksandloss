@@ -235,6 +235,24 @@ class Analyzer:
       if bounces[i] - bounces[i-1] < sma/10:
         bounces = np.delete(bounces,i)
     return bounces
+  def supportLevels(self):
+    levels = []
+    s =  np.mean(self.data['High'] - self.data['Low'])
+    for i in range(2,len(self.data['Low'])-2):
+      support = self.data['Low'][i] < self.data['Low'][i-1]  and self.data['Low'][i] < self.data['Low'][i+1] and self.data['Low'][i+1] < self.data['Low'][i+2] and self.data['Low'][i-1] < self.data['Low'][i-2]
+      if support:
+        # if np.sum([abs(self.data['Low']-x) < s  for x in levels]) == 0: #make sure the new level is not the same one as the last level
+        levels.append(self.data['Low'][i])
+    return levels
+  def resistanceLevels(self):
+    levels = []
+    s =  np.mean(self.data['High'] - self.data['Low'])
+    for i in range(2,len(self.data['High'])-2):
+      resistance = self.data['High'][i] > self.data['High'][i-1]  and self.data['High'][i] > self.data['High'][i+1] and self.data['High'][i+1] > self.data['High'][i+2] and self.data['High'][i-1] > self.data['High'][i-2]
+      if resistance:
+        # if np.sum([abs(self.data['High']-x) < s  for x in levels]) == 0: #make sure the new level is not the same one as the last level
+        levels.append(self.data['Low'][i])
+    return levels  
   def profit(self,capitalForEachTrade,comission):   #method for calculating profit, inputs: how much money is spent on each trade and the name of the trading strategy
     outputFrame = pd.DataFrame(np.zeros(shape=(len(self.trades["Buy date"]),11)), columns=["Buy date","Buy price","Buy value","Position","Sell date","Sell price","Sell value","Comission","Good trade?","Profit[%]","Profit[$]"])
     outputFrame["Buy date"] = self.trades["Buy date"]
