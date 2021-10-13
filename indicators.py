@@ -155,6 +155,17 @@ def plot_candlestick(ax, axy, stock):
     axy.set_ylim([0, np.max(stock.data["Volume"])*3.5])
     return 
 
+# bounces from SMA
+def sma_bounces(data, smaLine):
+    # calcualtes bounces
+    bounces = np.where(np.abs(data["Low"]-smaLine["SMA"])/smaLine["SMA"]<0.01)[0]
+    # deletes bounces if they are too close?
+    for i in range(1,bounces.size):
+      if bounces[i] - bounces[i-1] < 10:
+        bounces = np.delete(bounces,i)
+
+    return bounces
+
 # TESTING RUNTIME
 def main():
     # import only for this function
