@@ -57,8 +57,8 @@ def filter_trend(data, sensitivity=2):
         yorig = data.loc[reg.loc[i,"p1"]:reg.loc[i,"p2"], "Close"]
         reg.loc[i, "std"] = np.sqrt(np.sum((yfit-yorig)**2/reg.loc[i, "length"])) # np.mean(np.abs((yfit-yorig)))
         if reg.loc[i, "uptrend"] == True:
-            reg.loc[i, "risk"] = ((data.loc[reg.loc[i,"p1"]:reg.loc[i,"p2"], "Low"].min()/data.loc[reg.loc[i,"p1"], "Close"])-1)*100
+            reg.loc[i, "risk_%"] = ((data.loc[reg.loc[i,"p1"]:reg.loc[i,"p2"], "Low"].min()/data.loc[reg.loc[i,"p1"], "Close"])-1)*100
         else:
-            reg.loc[i, "risk"] = ((data.loc[reg.loc[i,"p1"]:reg.loc[i,"p2"], "High"].max()/data.loc[reg.loc[i,"p1"], "Close"])-1)*100
+            reg.loc[i, "risk_%"] = ((data.loc[reg.loc[i,"p1"]:reg.loc[i,"p2"], "High"].max()/data.loc[reg.loc[i,"p1"], "Close"])-1)*100
     
     return reg

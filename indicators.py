@@ -157,14 +157,14 @@ def plot_candlestick(ax, axy, stock):
 
 # bounces from SMA
 def sma_bounces(data, smaLine):
-    # calcualtes bounces
-    bounces = np.where(np.abs(data["Low"]-smaLine["SMA"])/smaLine["SMA"]<0.01)[0]
+    # calcualtes bounces (index positions)
+    bounces = np.where((np.abs(data["Low"]-smaLine)/smaLine) < 0.01)[0]
     # deletes bounces if they are too close?
-    for i in range(1,bounces.size):
-      if bounces[i] - bounces[i-1] < 10:
-        bounces = np.delete(bounces,i)
-
-    return bounces
+    todel = []
+    for i in range(1, bounces.size):
+      if (bounces[i] - bounces[i-1]) < 10:
+        todel.append(i)
+    return np.delete(bounces,todel)
 
 # TESTING RUNTIME
 def main():
