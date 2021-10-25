@@ -6,11 +6,13 @@ import indicators as ind
 import pandas as pd
 import numpy as np
 import datetime as dt
+from urllib.request import Request, urlopen
+from bs4 import BeautifulSoup
 
 class sectors():
     def show(self):
         # define figure
-        fig, ax = plt.subplots(ncols=3, nrows=4, figsize=(25,18))
+        fig, ax = plt.subplots(ncols=3, nrows=4, figsize=(20,16))
 
         indices = ["XLC", "XLY", "XLP", "XLE", "XLF", "XLV", "XLI", "XLB", "XLRE", "XLK", "XLU"]
         performance = ["YTD", "MTD", "Day"]
@@ -57,7 +59,7 @@ class sectors():
 
     def performance(self):
         perf = self.perf
-        fig, ax = plt.subplots(ncols=3, figsize=(25,4))
+        fig, ax = plt.subplots(ncols=3, figsize=(20,3))
         # day
         col = np.array(["g"]*len(perf))
         col[np.where(perf["Day"]<0)[0]] = "r"
@@ -82,7 +84,7 @@ class sectors():
 
 class worldmarkets():
     def show(self):
-        fig, ax = plt.subplots(ncols=3, nrows=2, figsize=(25,9))
+        fig, ax = plt.subplots(ncols=3, nrows=2, figsize=(20,8))
 
         indices = ["^HSI", "^N225", "STW.AX", "^FTMC", "^GDAXI"]
         performance = ["YTD", "MTD", "Day"]
@@ -127,7 +129,7 @@ class worldmarkets():
 
     def performance(self):
             perf = self.perf
-            fig, ax = plt.subplots(ncols=3, figsize=(25,4))
+            fig, ax = plt.subplots(ncols=3, figsize=(20,3))
             # day
             col = np.array(["g"]*len(perf))
             col[np.where(perf["Day"]<0)[0]] = "r"
@@ -155,7 +157,7 @@ def show_usmarkets():
     green = spy.data.index.where(spy.data["Close"] >= spy.data["Open"])
     red = spy.data.index.where(spy.data["Close"] < spy.data["Open"])
     # defining the figures
-    fig, ax = plt.subplots(nrows=3, ncols=2, figsize=(25,12), gridspec_kw={'height_ratios': [3, 1, 1]})
+    fig, ax = plt.subplots(nrows=3, ncols=2, figsize=(20,10), gridspec_kw={'height_ratios': [3, 1, 1]})
     rang = [150, spy.data.shape[0]]
     # SPY
     # plot closed prices and highlighted trades
@@ -264,3 +266,112 @@ def show_usmarkets():
     ax[2,1].set_xticklabels([])
 
     plt.show()
+
+def momentum_usmarkets():
+    # load the dataframe and compare the dates
+    df = pd.read_excel("marketmomentum.xlsx", index_col=0)
+    if df.loc[df.index[-1], "date"] != dt.date.today():
+        # scrape the data
+        url = "https://finviz.com/"
+        req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        webpage = urlopen(req).read()
+        soup = BeautifulSoup(webpage, "html.parser")
+        ups = soup.findAll("div", {"class": "market-stats_labels_left"})
+        downs = soup.findAll("div", {"class": "market-stats_labels_right"})
+
+        # create dataframe with new data
+        cols =["date", "advancing", "declining", "addiff", "highs", "lows", "hldiff", "above50", "below50", "abdiff"]
+        ndf = pd.DataFrame([], columns=cols)
+        # fill it with data
+        ndf.loc[0, "date"] = dt.date.today()
+        ndf.loc[0, "advancing"] = int(ups[0].span.text)
+        ndf.loc[0, "declining"] = int(downs[0].span.text)
+        ndf.loc[0, "addiff"] = ndf.loc[0, "advancing"] - ndf.loc[0, "declining"]
+        ndf.loc[0, "highs"] = int(ups[1].span.text)
+        ndf.loc[0, "lows"] = int(downs[1].span.text)
+        ndf.loc[0, "hldiff"] = ndf.loc[0, "highs"] - ndf.loc[0, "lows"]
+        ndf.loc[0, "above50"] = int(ups[2].span.text)
+        ndf.loc[0, "below50"] = int(downs[2].span.text)
+        ndf.loc[0, "abdiff"] = ndf.loc[0, "above50"] - ndf.loc[0, "below50"]
+
+        df = pd.concat([df, ndf], ignore_index=True)
+        df.to_excel("marketmomentum.xlsx")
+
+    # plot the data
+    fig, ax = plt.subplots(ncols=3, figsize=(20,3))
+    # advancing
+    col = np.array(["g"]*len(df["addiff"]))
+    col[np.where(df["addiff"]<0)[0]] = "r"
+    ax[0].bar(df.index, df["addiff"], color=col, alpha=0.8)
+    ax[0].set_title("Advancing - Declining", fontsize=20)
+    # high lows
+    col = np.array(["g"]*len(df["hldiff"]))
+    col[np.where(df["hldiff"]<0)[0]] = "r"
+    ax[1].bar(df.index, df["hldiff"], color=col, alpha=0.8)
+    ax[1].set_title("New highs - New lows", fontsize=20)
+    # above 50sma
+    col = np.array(["g"]*len(df["abdiff"]))
+    col[np.where(df["abdiff"]<0)[0]] = "r"
+    ax[2].bar(df.index, df["abdiff"], color=col, alpha=0.8)
+    ax[2].set_title("Above - Below 50 day SMA", fontsize=20)
+
+    plt.show()
+
+class screeners():
+    def newhighs(self):
+        # url for the specific screener
+        url = "https://finviz.com/screener.ashx?v=411&s=ta_newhigh&f=ind_stocksonly,sh_avgvol_o100,sh_float_o5,sh_relvol_o1"
+        # scrape the data
+        req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        webpage = urlopen(req).read()
+        soup = BeautifulSoup(webpage, "html.parser")
+        # create dataframe with the ticker names
+
+        tickers = soup.find_all("span", onclick=lambda onclick: onclick and onclick.startswith("window.location='quote.ashx?t"))
+        text = [val.text for i, val in enumerate(tickers)]
+        return pd.DataFrame(data={"Tickers": (val.text for i, val in enumerate(tickers))})
+
+    def fiftyday(self):
+        # url for the specific screener
+        url = "https://finviz.com/screener.ashx?v=411&f=fa_debteq_u1,fa_eps5years_o10,fa_sales5years_o10,ind_stocksonly,sh_avgvol_o100,sh_float_o5,sh_relvol_o1,ta_highlow50d_nh"
+        # scrape the data
+        req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        webpage = urlopen(req).read()
+        soup = BeautifulSoup(webpage, "html.parser")
+        # create dataframe with the ticker names
+
+        tickers = soup.find_all("span", onclick=lambda onclick: onclick and onclick.startswith("window.location='quote.ashx?t"))
+        return pd.DataFrame(data={"Tickers": (val.text for i, val in enumerate(tickers))})
+
+    def potentialreversal(self):
+        # url for the specific screener
+        url = "https://finviz.com/screener.ashx?v=411&f=ind_stocksonly,sh_avgvol_o400,ta_pattern_channelup,ta_perf_1wdown&ft=3&o=perf1w"
+        # scrape the data
+        req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        webpage = urlopen(req).read()
+        soup = BeautifulSoup(webpage, "html.parser")
+        # create dataframe with the ticker names
+
+        tickers = soup.find_all("span", onclick=lambda onclick: onclick and onclick.startswith("window.location='quote.ashx?t"))
+        return pd.DataFrame(data={"Tickers": (val.text for i, val in enumerate(tickers))})
+
+    def smabounces(self):
+        # url for the specific screener
+        url = "https://finviz.com/screener.ashx?v=411&f=ind_stocksonly,sh_avgvol_o400,sh_curvol_o2000,sh_relvol_o1,ta_sma20_pa,ta_sma50_pb&o=-perf1w"
+        # scrape the data
+        req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        webpage = urlopen(req).read()
+        soup = BeautifulSoup(webpage, "html.parser")
+        # create dataframe with the ticker names
+
+        tickers = soup.find_all("span", onclick=lambda onclick: onclick and onclick.startswith("window.location='quote.ashx?t"))
+        return pd.DataFrame(data={"Tickers": (val.text for i, val in enumerate(tickers))})
+
+    def prettify(self, df, nrows=10):
+        if (df.shape[0] % nrows) > 0:
+            em = np.zeros(nrows-(df.shape[0] % nrows)).astype(str)
+            em[:] = "-"
+            arr = np.concatenate((np.array([df["Tickers"].values]), em), axis=None)
+        else:
+            arr = np.array([df["Tickers"].values])
+        return pd.DataFrame(arr.reshape(nrows, -1))
