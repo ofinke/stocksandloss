@@ -50,6 +50,9 @@ class sectors():
             axy.set_ylim([0, np.max(sector.data["Volume"][150:])*3.5])
             axy.set_yticklabels([])
             axy.set_yticks([])
+            tick = np.linspace(150, sector.data.shape[0]-1, 6, dtype=int)
+            ax[axpos[i][0],axpos[i][1]].set_xticks(tick)
+            ax[axpos[i][0],axpos[i][1]].set_xticklabels(sector.data.loc[tick,"Date"].dt.strftime("%d/%m"))
             ax[axpos[i][0],axpos[i][1]].set_title(names[i], fontsize=20)
             ax[axpos[i][0],axpos[i][1]].set_xlim([150, sector.data.shape[0]])
             ax[axpos[i][0],axpos[i][1]].set_ylim([np.min(sector.data["Low"][150:])*0.9, np.max(sector.data["High"][150:])*1.05])
@@ -63,20 +66,20 @@ class sectors():
         # day
         col = np.array(["g"]*len(perf))
         col[np.where(perf["Day"]<0)[0]] = "r"
-        ax[0].bar(perf.index, perf["Day"], color=col, alpha=0.8)
+        ax[0].bar(perf.index, perf["Day"], color=col, alpha=0.8, edgecolor="k")
         ax[0].set_title("Day performance", fontsize=20)
         ax[0].set_ylabel("Change [%]", fontsize=16)
 
         # month
         col = np.array(["g"]*len(perf))
         col[np.where(perf["MTD"]<0)[0]] = "r"
-        ax[1].bar(perf.index, perf["MTD"], color=col, alpha=0.8)
+        ax[1].bar(perf.index, perf["MTD"], color=col, alpha=0.8, edgecolor="k")
         ax[1].set_title("MTD (20 trading days)", fontsize=20)
 
         # year
         col = np.array(["g"]*len(perf))
         col[np.where(perf["YTD"]<0)[0]] = "r"
-        ax[2].bar(perf.index, perf["YTD"], color=col, alpha=0.8)
+        ax[2].bar(perf.index, perf["YTD"], color=col, alpha=0.8, edgecolor="k")
         ax[2].set_title("YTD", fontsize=20)
 
         plt.show()
@@ -120,6 +123,9 @@ class worldmarkets():
             axy.set_ylim([0, np.max(sector.data["Volume"][150:])*3.5])
             axy.set_yticklabels([])
             axy.set_yticks([])
+            tick = np.linspace(150, sector.data.shape[0]-1, 6, dtype=int)
+            ax[axpos[i][0],axpos[i][1]].set_xticks(tick)
+            ax[axpos[i][0],axpos[i][1]].set_xticklabels(sector.data.loc[tick,"Date"].dt.strftime("%d/%m"))
             ax[axpos[i][0],axpos[i][1]].set_title(names[i], fontsize=20)
             ax[axpos[i][0],axpos[i][1]].set_xlim([150, sector.data.shape[0]])
             ax[axpos[i][0],axpos[i][1]].set_ylim([np.min(sector.data["Low"][150:])*0.9, np.max(sector.data["High"][150:])*1.05])
@@ -133,20 +139,20 @@ class worldmarkets():
             # day
             col = np.array(["g"]*len(perf))
             col[np.where(perf["Day"]<0)[0]] = "r"
-            ax[0].bar(perf.index, perf["Day"], color=col, alpha=0.8)
+            ax[0].bar(perf.index, perf["Day"], color=col, alpha=0.8, edgecolor="k")
             ax[0].set_title("Day performance", fontsize=20)
             ax[0].set_ylabel("Change [%]", fontsize=16)
 
             # month
             col = np.array(["g"]*len(perf))
             col[np.where(perf["MTD"]<0)[0]] = "r"
-            ax[1].bar(perf.index, perf["MTD"], color=col, alpha=0.8)
+            ax[1].bar(perf.index, perf["MTD"], color=col, alpha=0.8, edgecolor="k")
             ax[1].set_title("MTD (20 trading days)", fontsize=20)
 
             # year
             col = np.array(["g"]*len(perf))
             col[np.where(perf["YTD"]<0)[0]] = "r"
-            ax[2].bar(perf.index, perf["YTD"], color=col, alpha=0.8)
+            ax[2].bar(perf.index, perf["YTD"], color=col, alpha=0.8, edgecolor="k")
             ax[2].set_title("YTD", fontsize=20)
 
             plt.show()
@@ -180,6 +186,9 @@ def show_usmarkets():
     ax[0,0].set_title("SPY", fontsize=20)
     ax[0,0].set_ylabel("Close price [USD]", fontsize=14)
     ax[0,0].set_xlim(rang)
+    tick = np.linspace(rang[0], rang[1]-1, 6, dtype=int)
+    ax[0,0].set_xticks(tick)
+    ax[0,0].set_xticklabels(spy.data.loc[tick,"Date"].dt.strftime("%d/%m"))
     ax[0,0].set_ylim([np.min(spy.data["Low"][150:])*0.9, np.max(spy.data["High"][150:])*1.05])
     # Plot double stochastic oscillator, 21 and 5
     st_fast = ind.stoch(spy.data, period=21, sk=2, sd=5)
@@ -235,6 +244,9 @@ def show_usmarkets():
     axy.set_ylim([0, np.max(iwm.data["Volume"][150:])*3.5])
     axy.set_yticklabels([])
     axy.set_yticks([])
+    tick = np.linspace(rang[0], rang[1]-1, 6, dtype=int)
+    ax[0,1].set_xticks(tick)
+    ax[0,1].set_xticklabels(iwm.data.loc[tick,"Date"].dt.strftime("%d/%m"))
     ax[0,1].set_title("IWM", fontsize=20)
     ax[0,1].set_xlim(rang)
     ax[0,1].set_ylim([np.min(iwm.data["Low"][150:])*0.9, np.max(iwm.data["High"][150:])*1.05])
@@ -267,6 +279,28 @@ def show_usmarkets():
 
     plt.show()
 
+def longterm_usmarkets():
+    tickers = ["SPY", "IWM"]
+
+    fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(20,3))
+
+    for i, val in enumerate(tickers):
+        stock = stock_daily(val, save=False)
+        ax[i].set_title(val + " last year", fontsize=20)
+        ax[i].plot(stock.data["Close"], color="tab:orange", linewidth=2)
+        axy = ax[i].twinx()
+        axy.fill_between(stock.data.index, stock.data["Volume"], alpha=0.5)
+        # axy.vlines(stock.data.index, 0, stock.data["Volume"], color="tab:blue", linewidth=0.75, alpha=0.8)
+        axy.set_ylim([0, np.max(stock.data["Volume"][150:])*3.5])
+        axy.set_xlim([stock.data.index[0], stock.data.index[-1]])
+        axy.set_yticklabels([])
+        axy.set_yticks([])
+        tick = np.linspace(stock.data.index[0], stock.data.index[-1]-1, 6, dtype=int)
+        ax[i].set_xticks(tick)
+        ax[i].set_xticklabels(stock.data.loc[tick,"Date"].dt.strftime("%d/%m"))
+
+    plt.show()
+
 def momentum_usmarkets():
     # load the dataframe and compare the dates
     df = pd.read_excel("marketmomentum.xlsx", index_col=0)
@@ -283,7 +317,7 @@ def momentum_usmarkets():
         cols =["date", "advancing", "declining", "addiff", "highs", "lows", "hldiff", "above50", "below50", "abdiff"]
         ndf = pd.DataFrame([], columns=cols)
         # fill it with data
-        ndf.loc[0, "date"] = dt.date.today()
+        ndf.loc[0, "date"] = dt.datetime.today()
         ndf.loc[0, "advancing"] = int(ups[0].span.text)
         ndf.loc[0, "declining"] = int(downs[0].span.text)
         ndf.loc[0, "addiff"] = ndf.loc[0, "advancing"] - ndf.loc[0, "declining"]
@@ -302,18 +336,29 @@ def momentum_usmarkets():
     # advancing
     col = np.array(["g"]*len(df["addiff"]))
     col[np.where(df["addiff"]<0)[0]] = "r"
-    ax[0].bar(df.index, df["addiff"], color=col, alpha=0.8)
+    ax[0].bar(df.index, df["addiff"], color=col, alpha=0.8, edgecolor="k")
     ax[0].set_title("Advancing - Declining", fontsize=20)
+    ax[0].hlines(0, df.index[0]-1, df.index[-1]+1, color="k", linestyle="--", linewidth=1)
+    ax[0].set_xlim([-0.5, df.index[-1]+0.5])
+    ax[0].set_xticks(df.index)
+    ax[0].set_xticklabels(df["date"].dt.strftime("%d/%m"))
     # high lows
     col = np.array(["g"]*len(df["hldiff"]))
     col[np.where(df["hldiff"]<0)[0]] = "r"
-    ax[1].bar(df.index, df["hldiff"], color=col, alpha=0.8)
+    ax[1].bar(df.index, df["hldiff"], color=col, alpha=0.8, edgecolor="k")
     ax[1].set_title("New highs - New lows", fontsize=20)
+    ax[1].hlines(0, df.index[0]-1, df.index[-1]+1, color="k", linestyle="--", linewidth=1)
+    ax[1].set_xlim([-0.5, df.index[-1]+0.5])
+    ax[1].set_xticks(df.index)
+    ax[1].set_xticklabels(df["date"].dt.strftime("%d/%m"))
     # above 50sma
-    col = np.array(["g"]*len(df["abdiff"]))
-    col[np.where(df["abdiff"]<0)[0]] = "r"
-    ax[2].bar(df.index, df["abdiff"], color=col, alpha=0.8)
-    ax[2].set_title("Above - Below 50 day SMA", fontsize=20)
+    ax[2].bar(df.index, df["above50"], color="g", alpha=0.8, edgecolor="k")
+    ax[2].bar(df.index, -df["below50"], color="r", alpha=0.8, edgecolor="k")
+    ax[2].hlines(0, df.index[0]-1, df.index[-1]+1, color="k", linestyle="--", linewidth=1)
+    ax[2].set_xlim([-0.5, df.index[-1]+0.5])
+    ax[2].set_xticks(df.index)
+    ax[2].set_xticklabels(df["date"].dt.strftime("%d/%m"))
+    ax[2].set_title("Above and below 50 day SMA", fontsize=20)
 
     plt.show()
 
@@ -322,7 +367,7 @@ class screeners():
         # url for the specific screener
         url = "https://finviz.com/screener.ashx?v=411&s=ta_newhigh&f=ind_stocksonly,sh_avgvol_o100,sh_float_o5,sh_relvol_o1"
         # scrape the data
-        req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        req = Request(url, headers={'User-Agent': "Chrome/95.0"})
         webpage = urlopen(req).read()
         soup = BeautifulSoup(webpage, "html.parser")
         # create dataframe with the ticker names
@@ -335,7 +380,7 @@ class screeners():
         # url for the specific screener
         url = "https://finviz.com/screener.ashx?v=411&f=fa_debteq_u1,fa_eps5years_o10,fa_sales5years_o10,ind_stocksonly,sh_avgvol_o100,sh_float_o5,sh_relvol_o1,ta_highlow50d_nh"
         # scrape the data
-        req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        req = Request(url, headers={'User-Agent': "Chrome/95.0"})
         webpage = urlopen(req).read()
         soup = BeautifulSoup(webpage, "html.parser")
         # create dataframe with the ticker names
@@ -347,7 +392,7 @@ class screeners():
         # url for the specific screener
         url = "https://finviz.com/screener.ashx?v=411&f=ind_stocksonly,sh_avgvol_o400,ta_pattern_channelup,ta_perf_1wdown&ft=3&o=perf1w"
         # scrape the data
-        req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        req = Request(url, headers={'User-Agent': "Chrome/95.0"})
         webpage = urlopen(req).read()
         soup = BeautifulSoup(webpage, "html.parser")
         # create dataframe with the ticker names
@@ -359,7 +404,7 @@ class screeners():
         # url for the specific screener
         url = "https://finviz.com/screener.ashx?v=411&f=ind_stocksonly,sh_avgvol_o400,sh_curvol_o2000,sh_relvol_o1,ta_sma20_pa,ta_sma50_pb&o=-perf1w"
         # scrape the data
-        req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        req = Request(url, headers={'User-Agent': "Chrome/95.0"})
         webpage = urlopen(req).read()
         soup = BeautifulSoup(webpage, "html.parser")
         # create dataframe with the ticker names
@@ -368,10 +413,25 @@ class screeners():
         return pd.DataFrame(data={"Tickers": (val.text for i, val in enumerate(tickers))})
 
     def prettify(self, df, nrows=10):
+        # nested function fot clickable links to results
+        def make_clickable(val):
+            # target _blank to open new window
+            return '<a target="_blank" href="https://finviz.com/quote.ashx?t={}" style="text-decoration: none">{}</a>'.format(val, val)
+        
         if (df.shape[0] % nrows) > 0:
             em = np.zeros(nrows-(df.shape[0] % nrows)).astype(str)
-            em[:] = "-"
+            em[:] = " "
             arr = np.concatenate((np.array([df["Tickers"].values]), em), axis=None)
         else:
             arr = np.array([df["Tickers"].values])
-        return pd.DataFrame(arr.reshape(nrows, -1))
+        return pd.DataFrame(arr.reshape(nrows, -1)).style.format(make_clickable)
+
+    def newipos(self):
+        # url for the specific screener
+        url = "https://finviz.com/screener.ashx?v=151&f=ipodate_prevweek&o=ipodate"
+        # scrape the data
+        req = Request(url, headers={'User-Agent': "Chrome/95.0"})
+        webpage = urlopen(req).read()
+        soup = BeautifulSoup(webpage, "html.parser")
+        # create dataframe with the ticker names
+        return soup
