@@ -142,18 +142,27 @@ def vfi(x, period=40, coef=0.2, vcoef=2.5, ssmooth=5):
 # plot candles
 # function to create "candlestick" plot 
 def plot_candlestick(ax, axy, stock):
-    green = stock.data.index.where(stock.data["Close"] >= stock.data["Open"])
-    red = stock.data.index.where(stock.data["Close"] < stock.data["Open"])
-    ax.vlines(green, stock.data["Low"], stock.data["High"], color="g")
-    ax.scatter(green, stock.data["Open"], marker="_", color="g", s=10)
-    ax.scatter(green, stock.data["Close"], marker="_", color="g", s=10)
-    ax.vlines(red, stock.data["Low"], stock.data["High"], color="r")
-    ax.scatter(red, stock.data["Open"], marker="_", color="r", s=10)
-    ax.scatter(red, stock.data["Close"], marker="_", color="r", s=10)
-    axy.vlines(red, 0, stock.data["Volume"], color="r", alpha=0.5)
-    axy.vlines(green, 0, stock.data["Volume"], color="g", alpha=0.5)
-    axy.set_ylim([0, np.max(stock.data["Volume"])*3.5])
-    return 
+    green = stock.index.where(stock["Close"] >= stock["Open"])
+    red = stock.index.where(stock["Close"] < stock["Open"])
+    ax.vlines(green, stock["Low"], stock["High"], color="g")
+    ax.scatter(green, stock["Open"], marker="_", color="g", s=10)
+    ax.scatter(green, stock["Close"], marker="_", color="g", s=10)
+    ax.vlines(red, stock["Low"], stock["High"], color="r")
+    ax.scatter(red, stock["Open"], marker="_", color="r", s=10)
+    ax.scatter(red, stock["Close"], marker="_", color="r", s=10)
+    axy.vlines(red, 0, stock["Volume"], color="r", alpha=0.5)
+    axy.vlines(green, 0, stock["Volume"], color="g", alpha=0.5)
+    axy.set_ylim([0, np.max(stock["Volume"])*3.5])
+    axy.set_yticklabels([])
+    axy.set_yticks([])
+    return ax, axy
+
+def plot_bollinger(ax, stock):
+    bollb = bollbands(stock, stdn=1)
+    ax.plot(bollb["upper"], color="b", alpha=0.3)
+    ax.plot(bollb["lower"], color="b", alpha=0.3)
+    ax.fill_between(np.arange(bollb.shape[0]), bollb["lower"], bollb["upper"], color="b", alpha=0.05)
+    return ax
 
 # bounces from SMA
 def sma_bounces(data, smaLine):

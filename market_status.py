@@ -33,6 +33,7 @@ class sectors():
             green = sector.data.index.where(sector.data["Close"] >= sector.data["Open"])
             red = sector.data.index.where(sector.data["Close"] < sector.data["Open"])
             sma = ind.sma(sector.data, 100)["SMA"]
+            bollb = ind.bollbands(sector.data, stdn=1)
             ax[axpos[i][0],axpos[i][1]].vlines(green, sector.data["Low"], sector.data["High"], color="g")
             # ax[axpos[i][0],axpos[i][1]].vlines(green, sector.data["Open"], sector.data["Close"], color="g", linewidth=3)
             ax[axpos[i][0],axpos[i][1]].scatter(green, sector.data["Open"], marker="_", color="g", s=10)
@@ -42,8 +43,9 @@ class sectors():
             ax[axpos[i][0],axpos[i][1]].scatter(red, sector.data["Open"], marker="_", color="r", s=10)
             ax[axpos[i][0],axpos[i][1]].scatter(red, sector.data["Close"], marker="_", color="r", s=10)
             ax[axpos[i][0],axpos[i][1]].plot(sma, color="b")
-            ax[axpos[i][0],axpos[i][1]].plot(ind.ema(sector.data, 13)["EMA"], "y")
-            ax[axpos[i][0],axpos[i][1]].plot(ind.ema(sector.data, 26)["EMA"], color="tab:orange")
+            ax[axpos[i][0],axpos[i][1]].plot(bollb["upper"], color="b", alpha=0.3)
+            ax[axpos[i][0],axpos[i][1]].plot(bollb["lower"], color="b", alpha=0.3)
+            ax[axpos[i][0],axpos[i][1]].fill_between(np.arange(bollb.shape[0]), bollb["lower"], bollb["upper"], color="b", alpha=0.05)
             axy = ax[axpos[i][0],axpos[i][1]].twinx()
             axy.vlines(red, 0, sector.data["Volume"], color="r", alpha=0.5)
             axy.vlines(green, 0, sector.data["Volume"], color="g", alpha=0.5)
@@ -108,6 +110,7 @@ class worldmarkets():
             green = sector.data.index.where(sector.data["Close"] >= sector.data["Open"])
             red = sector.data.index.where(sector.data["Close"] < sector.data["Open"])
             sma = ind.sma(sector.data, 100)["SMA"]
+            bollb = ind.bollbands(sector.data, stdn=1)
             ax[axpos[i][0],axpos[i][1]].vlines(green, sector.data["Low"], sector.data["High"], color="g")
             ax[axpos[i][0],axpos[i][1]].scatter(green, sector.data["Open"], marker="_", color="g", s=10)
             ax[axpos[i][0],axpos[i][1]].scatter(green, sector.data["Close"], marker="_", color="g", s=10)
@@ -115,8 +118,9 @@ class worldmarkets():
             ax[axpos[i][0],axpos[i][1]].scatter(red, sector.data["Open"], marker="_", color="r", s=10)
             ax[axpos[i][0],axpos[i][1]].scatter(red, sector.data["Close"], marker="_", color="r", s=10)
             ax[axpos[i][0],axpos[i][1]].plot(sma, color="b")
-            ax[axpos[i][0],axpos[i][1]].plot(ind.ema(sector.data, 13)["EMA"], "y")
-            ax[axpos[i][0],axpos[i][1]].plot(ind.ema(sector.data, 26)["EMA"], color="tab:orange")
+            ax[axpos[i][0],axpos[i][1]].plot(bollb["upper"], color="b", alpha=0.3)
+            ax[axpos[i][0],axpos[i][1]].plot(bollb["lower"], color="b", alpha=0.3)
+            ax[axpos[i][0],axpos[i][1]].fill_between(np.arange(bollb.shape[0]), bollb["lower"], bollb["upper"], color="b", alpha=0.05)
             axy = ax[axpos[i][0],axpos[i][1]].twinx()
             axy.vlines(red, 0, sector.data["Volume"], color="r", alpha=0.5)
             axy.vlines(green, 0, sector.data["Volume"], color="g", alpha=0.5)
@@ -163,11 +167,12 @@ def show_usmarkets():
     green = spy.data.index.where(spy.data["Close"] >= spy.data["Open"])
     red = spy.data.index.where(spy.data["Close"] < spy.data["Open"])
     # defining the figures
-    fig, ax = plt.subplots(nrows=3, ncols=2, figsize=(20,10), gridspec_kw={'height_ratios': [3, 1, 1]})
+    fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(20,6), gridspec_kw={'height_ratios': [3, 1]})
     rang = [150, spy.data.shape[0]]
     # SPY
     # plot closed prices and highlighted trades
     sma = ind.sma(spy.data, 100)["SMA"]
+    bollb = ind.bollbands(spy.data, stdn=1)
     ax[0,0].vlines(green, spy.data["Low"], spy.data["High"], color="g")
     ax[0,0].scatter(green, spy.data["Open"], marker="_", color="g", s=10)
     ax[0,0].scatter(green, spy.data["Close"], marker="_", color="g", s=10)
@@ -175,49 +180,31 @@ def show_usmarkets():
     ax[0,0].scatter(red, spy.data["Open"], marker="_", color="r", s=10)
     ax[0,0].scatter(red, spy.data["Close"], marker="_", color="r", s=10)
     ax[0,0].plot(sma, color="b")
-    ax[0,0].plot(ind.ema(spy.data, 13)["EMA"], "y")
-    ax[0,0].plot(ind.ema(spy.data, 26)["EMA"], color="tab:orange")
+    ax[0,0].plot(bollb["upper"], color="b", alpha=0.3)
+    ax[0,0].plot(bollb["lower"], color="b", alpha=0.3)
+    ax[0,0].fill_between(np.arange(bollb.shape[0]), bollb["lower"], bollb["upper"], color="b", alpha=0.05)
     axy = ax[0,0].twinx()
     axy.vlines(red, 0, spy.data["Volume"], color="r")
     axy.vlines(green, 0, spy.data["Volume"], color="g")
     axy.set_ylim([0, np.max(spy.data["Volume"][150:])*3.5])
     axy.set_yticklabels([])
     axy.set_yticks([])
-    ax[0,0].set_title("SPY", fontsize=20)
+    ax[0,0].set_title("SPY", fontsize=16)
     ax[0,0].set_ylabel("Close price [USD]", fontsize=14)
     ax[0,0].set_xlim(rang)
     tick = np.linspace(rang[0], rang[1]-1, 6, dtype=int)
     ax[0,0].set_xticks(tick)
     ax[0,0].set_xticklabels(spy.data.loc[tick,"Date"].dt.strftime("%d/%m"))
     ax[0,0].set_ylim([np.min(spy.data["Low"][150:])*0.9, np.max(spy.data["High"][150:])*1.05])
-    # Plot double stochastic oscillator, 21 and 5
-    st_fast = ind.stoch(spy.data, period=21, sk=2, sd=5)
-    st_slow = ind.stoch(spy.data, period=5, sk=2, sd=3)
-    ax[1,0].plot(st_slow["k"], "b--", alpha=0.4)
-    ax[1,0].plot(st_slow["d"], "b", alpha=0.4)
-    ax[1,0].plot(st_fast["k"], "c--", alpha=0.4)
-    ax[1,0].plot(st_fast["d"], "c", alpha=0.4)
-    ax[1,0].fill_between(np.arange(spy.data.shape[0]), st_slow["k"], st_slow["d"], where=(st_slow["k"] >= st_slow["d"]), interpolate=True, facecolor="green", alpha=0.4)
-    ax[1,0].fill_between(np.arange(spy.data.shape[0]), st_slow["k"], st_slow["d"], where=(st_slow["k"] < st_slow["d"]), interpolate=True, facecolor="red", alpha=0.4)
-    ax[1,0].fill_between(np.arange(spy.data.shape[0]), st_fast["k"], st_fast["d"], where=(st_fast["k"] >= st_fast["d"]), interpolate=True, facecolor="green", alpha=0.4)
-    ax[1,0].fill_between(np.arange(spy.data.shape[0]), st_fast["k"], st_fast["d"], where=(st_fast["k"] < st_fast["d"]), interpolate=True, facecolor="red", alpha=0.4)
-    # y lines for stochastic
-    ax[1,0].plot(np.arange(spy.data.shape[0]), 80*np.ones(spy.data.shape[0]), "k--", alpha=0.5)
-    ax[1,0].plot(np.arange(spy.data.shape[0]), 50*np.ones(spy.data.shape[0]), "r--", alpha=0.5)
-    ax[1,0].plot(np.arange(spy.data.shape[0]), 20*np.ones(spy.data.shape[0]), "k--", alpha=0.5)
-    ax[1,0].set_xlim(rang)
-    ax[1,0].set_ylabel("Double stochastic", fontsize=14)
-    ax[1,0].set_xticks([])
-    ax[1,0].set_xticklabels([])
     # plot VFI
     vfi = ind.vfi(spy.data, period=30, coef=0.2, vcoef=1.5)
-    ax[2,0].plot(vfi["vfi"])
-    ax[2,0].plot(vfi["vfi_smooth"])
-    ax[2,0].vlines(spy.data.index, 0, vfi["histogram"], "k", alpha=0.5)
-    ax[2,0].set_xlim(rang)
-    ax[2,0].set_ylabel("VFI", fontsize=14)
-    ax[2,0].set_xticks([])
-    ax[2,0].set_xticklabels([])
+    ax[1,0].plot(vfi["vfi"])
+    ax[1,0].plot(vfi["vfi_smooth"])
+    ax[1,0].vlines(spy.data.index, 0, vfi["histogram"], "k", alpha=0.5)
+    ax[1,0].set_xlim(rang)
+    ax[1,0].set_ylabel("VFI", fontsize=14)
+    ax[1,0].set_xticks([])
+    ax[1,0].set_xticklabels([])
 
 
     # IWM
@@ -228,15 +215,17 @@ def show_usmarkets():
     rang = [150, iwm.data.shape[0]]
     # plot closed prices and highlighted trades
     sma = ind.sma(iwm.data, 100)["SMA"]
+    bollb = ind.bollbands(iwm.data, stdn=1)
     ax[0,1].vlines(green, iwm.data["Low"], iwm.data["High"], color="g")
     ax[0,1].scatter(green, iwm.data["Open"], marker="_", color="g", s=10)
     ax[0,1].scatter(green, iwm.data["Close"], marker="_", color="g", s=10)
     ax[0,1].vlines(red, iwm.data["Low"], iwm.data["High"], color="r")
     ax[0,1].scatter(red, iwm.data["Open"], marker="_", color="r", s=10)
     ax[0,1].scatter(red, iwm.data["Close"], marker="_", color="r", s=10)
-    ax[0,1].plot(sma, "b")
-    ax[0,1].plot(ind.ema(iwm.data, 13)["EMA"], "y")
-    ax[0,1].plot(ind.ema(iwm.data, 26)["EMA"], color="tab:orange")
+    ax[0,1].plot(sma, color="b")
+    ax[0,1].plot(bollb["upper"], color="b", alpha=0.3)
+    ax[0,1].plot(bollb["lower"], color="b", alpha=0.3)
+    ax[0,1].fill_between(np.arange(bollb.shape[0]), bollb["lower"], bollb["upper"], color="b", alpha=0.05)
     # volume
     axy = ax[0,1].twinx()
     axy.vlines(red, 0, iwm.data["Volume"], color="r")
@@ -247,35 +236,17 @@ def show_usmarkets():
     tick = np.linspace(rang[0], rang[1]-1, 6, dtype=int)
     ax[0,1].set_xticks(tick)
     ax[0,1].set_xticklabels(iwm.data.loc[tick,"Date"].dt.strftime("%d/%m"))
-    ax[0,1].set_title("IWM", fontsize=20)
+    ax[0,1].set_title("IWM", fontsize=16)
     ax[0,1].set_xlim(rang)
     ax[0,1].set_ylim([np.min(iwm.data["Low"][150:])*0.9, np.max(iwm.data["High"][150:])*1.05])
-    # Plot double stochastic oscillator, 21 and 5
-    st_fast = ind.stoch(iwm.data, period=21, sk=2, sd=5)
-    st_slow = ind.stoch(iwm.data, period=5, sk=2, sd=3)
-    ax[1,1].plot(st_slow["k"], "b--", alpha=0.4)
-    ax[1,1].plot(st_slow["d"], "b", alpha=0.4)
-    ax[1,1].plot(st_fast["k"], "c--", alpha=0.4)
-    ax[1,1].plot(st_fast["d"], "c", alpha=0.4)
-    ax[1,1].fill_between(np.arange(iwm.data.shape[0]), st_slow["k"], st_slow["d"], where=(st_slow["k"] >= st_slow["d"]), interpolate=True, facecolor="green", alpha=0.4)
-    ax[1,1].fill_between(np.arange(iwm.data.shape[0]), st_slow["k"], st_slow["d"], where=(st_slow["k"] < st_slow["d"]), interpolate=True, facecolor="red", alpha=0.4)
-    ax[1,1].fill_between(np.arange(iwm.data.shape[0]), st_fast["k"], st_fast["d"], where=(st_fast["k"] >= st_fast["d"]), interpolate=True, facecolor="green", alpha=0.4)
-    ax[1,1].fill_between(np.arange(iwm.data.shape[0]), st_fast["k"], st_fast["d"], where=(st_fast["k"] < st_fast["d"]), interpolate=True, facecolor="red", alpha=0.4)
-    # y lines for stochastic
-    ax[1,1].plot(np.arange(iwm.data.shape[0]), 80*np.ones(iwm.data.shape[0]), "k--", alpha=0.5)
-    ax[1,1].plot(np.arange(iwm.data.shape[0]), 50*np.ones(iwm.data.shape[0]), "r--", alpha=0.5)
-    ax[1,1].plot(np.arange(iwm.data.shape[0]), 20*np.ones(iwm.data.shape[0]), "k--", alpha=0.5)
+    # plot VFI
+    vfi = ind.vfi(iwm.data, period=30, coef=0.2, vcoef=1.5)
+    ax[1,1].plot(vfi["vfi"])
+    ax[1,1].plot(vfi["vfi_smooth"])
+    ax[1,1].vlines(iwm.data.index, 0, vfi["histogram"], "k", alpha=0.5)
     ax[1,1].set_xlim(rang)
     ax[1,1].set_xticks([])
     ax[1,1].set_xticklabels([])
-    # plot VFI
-    vfi = ind.vfi(iwm.data, period=30, coef=0.2, vcoef=1.5)
-    ax[2,1].plot(vfi["vfi"])
-    ax[2,1].plot(vfi["vfi_smooth"])
-    ax[2,1].vlines(iwm.data.index, 0, vfi["histogram"], "k", alpha=0.5)
-    ax[2,1].set_xlim(rang)
-    ax[2,1].set_xticks([])
-    ax[2,1].set_xticklabels([])
 
     plt.show()
 
@@ -287,7 +258,7 @@ def longterm_usmarkets():
     for i, val in enumerate(tickers):
         stock = stock_daily(val, save=False)
         ax[i].set_title(val + " last year", fontsize=20)
-        ax[i].plot(stock.data["Close"], color="tab:orange", linewidth=2)
+        ax[i].plot(stock.data["Close"], color="b", linewidth=2)
         axy = ax[i].twinx()
         axy.fill_between(stock.data.index, stock.data["Volume"], alpha=0.5)
         # axy.vlines(stock.data.index, 0, stock.data["Volume"], color="tab:blue", linewidth=0.75, alpha=0.8)
@@ -298,6 +269,7 @@ def longterm_usmarkets():
         tick = np.linspace(stock.data.index[0], stock.data.index[-1]-1, 6, dtype=int)
         ax[i].set_xticks(tick)
         ax[i].set_xticklabels(stock.data.loc[tick,"Date"].dt.strftime("%d/%m"))
+    ax[0].set_ylabel("Close price [USD]", fontsize=14)
 
     plt.show()
 
@@ -330,35 +302,38 @@ def momentum_usmarkets():
 
         df = pd.concat([df, ndf], ignore_index=True)
         df.to_excel("marketmomentum.xlsx")
+        # there is bug with the dates, its unable to set the xtickslabels properly when new row is added
+
 
     # plot the data
-    fig, ax = plt.subplots(ncols=3, figsize=(20,3))
+    fig, ax = plt.subplots(nrows=2, figsize=(20,6))
     # advancing
-    col = np.array(["g"]*len(df["addiff"]))
-    col[np.where(df["addiff"]<0)[0]] = "r"
-    ax[0].bar(df.index, df["addiff"], color=col, alpha=0.8, edgecolor="k")
-    ax[0].set_title("Advancing - Declining", fontsize=20)
+    ax[0].bar(df.index, df["advancing"], color="g", alpha=0.8, edgecolor="k")
+    ax[0].bar(df.index, -df["declining"], color="r", alpha=0.8, edgecolor="k")
+    ax[0].set_ylabel("Advancing & Declining", fontsize=14)
     ax[0].hlines(0, df.index[0]-1, df.index[-1]+1, color="k", linestyle="--", linewidth=1)
     ax[0].set_xlim([-0.5, df.index[-1]+0.5])
     ax[0].set_xticks(df.index)
     ax[0].set_xticklabels(df["date"].dt.strftime("%d/%m"))
+    ax[0].yaxis.tick_right()
     # high lows
     col = np.array(["g"]*len(df["hldiff"]))
     col[np.where(df["hldiff"]<0)[0]] = "r"
     ax[1].bar(df.index, df["hldiff"], color=col, alpha=0.8, edgecolor="k")
-    ax[1].set_title("New highs - New lows", fontsize=20)
+    ax[1].set_ylabel("Highs-Lows", fontsize=14)
     ax[1].hlines(0, df.index[0]-1, df.index[-1]+1, color="k", linestyle="--", linewidth=1)
     ax[1].set_xlim([-0.5, df.index[-1]+0.5])
     ax[1].set_xticks(df.index)
     ax[1].set_xticklabels(df["date"].dt.strftime("%d/%m"))
+    ax[1].yaxis.tick_right()
     # above 50sma
-    ax[2].bar(df.index, df["above50"], color="g", alpha=0.8, edgecolor="k")
-    ax[2].bar(df.index, -df["below50"], color="r", alpha=0.8, edgecolor="k")
-    ax[2].hlines(0, df.index[0]-1, df.index[-1]+1, color="k", linestyle="--", linewidth=1)
-    ax[2].set_xlim([-0.5, df.index[-1]+0.5])
-    ax[2].set_xticks(df.index)
-    ax[2].set_xticklabels(df["date"].dt.strftime("%d/%m"))
-    ax[2].set_title("Above and below 50 day SMA", fontsize=20)
+    # ax[2].bar(df.index, df["above50"], color="g", alpha=0.8, edgecolor="k")
+    # ax[2].bar(df.index, -df["below50"], color="r", alpha=0.8, edgecolor="k")
+    # ax[2].hlines(0, df.index[0]-1, df.index[-1]+1, color="k", linestyle="--", linewidth=1)
+    # ax[2].set_xlim([-0.5, df.index[-1]+0.5])
+    # ax[2].set_xticks(df.index)
+    # ax[2].set_xticklabels(df["date"].dt.strftime("%d/%m"))
+    # ax[2].set_title("Above and below 50 day SMA", fontsize=20)
 
     plt.show()
 
@@ -435,3 +410,14 @@ class screeners():
         soup = BeautifulSoup(webpage, "html.parser")
         # create dataframe with the ticker names
         return soup
+
+# ------------------------- testing / editing of functions and classes
+
+def main():
+    momentum_usmarkets()
+    return
+
+if __name__ == '__main__':
+    main()
+
+
