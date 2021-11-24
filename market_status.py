@@ -304,7 +304,7 @@ def momentum_usmarkets():
         df.to_excel("marketmomentum.xlsx")
         # there is bug with the dates, its unable to set the xtickslabels properly when new row is added
 
-
+    df["date"] = pd.to_datetime(df["date"])
     # plot the data
     fig, ax = plt.subplots(nrows=2, figsize=(20,6))
     # advancing
