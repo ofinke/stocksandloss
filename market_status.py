@@ -6,8 +6,11 @@ import indicators as ind
 import pandas as pd
 import numpy as np
 import datetime as dt
+import ast
+import time
 from urllib.request import Request, urlopen
 from bs4 import BeautifulSoup
+
 
 class sectors():
     def show(self):
@@ -411,10 +414,65 @@ class screeners():
         # create dataframe with the ticker names
         return soup
 
+class futures():
+    # to be implemented
+    def save(self):
+        return
+    def load(self):
+        return
+    # scrap futures from finviz (relative, day, week, month, quarter, year)
+    def scrapfutures(self, column, row):
+        # scraps relative performance and returns all rows
+        url = "https://finviz.com/futures_performance.ashx?v="+column
+        # scrape the data
+        req = Request(url, headers={'User-Agent': "Chrome/95.0"})
+        webpage = urlopen(req).read()
+        soup = BeautifulSoup(webpage, "html.parser")
+        # EXTRACTING THE RESULTS
+        # find corresponding script, values are hold in a messy string
+        # possible future problem: index of correct javascript tag is hardcoded as 14, should think of something more future proof
+        # this works for getting the data (27/11/2021)
+        stringmess = soup.find_all("script", type="text/javascript")[14].string  # this string holds the results + some trash around it
+        stringmess = stringmess.split("[")[1].split("]")[0] # extract the dictionary definition
+        scrapedvals = pd.DataFrame(data=ast.literal_eval(stringmess)) # convert mess to dataframe
+        scrapedvals = scrapedvals[scrapedvals["label"].isin(row)].reset_index(drop=True) #drop values Im not interested in
+        scrapedvals = scrapedvals.set_index(scrapedvals["label"].values).reindex(row) # redefine index and sort it so it corresponds to how "row" is sorted
+        return scrapedvals["perf"]
+
+    def returnfutures(self):
+        # define dataframe
+        # problem, currently cannot scrap year as the ast.literal_eval() function get stuck on ethanol which returns null for some reason
+        col = ["Day", "Week", "Month", "Quarter"] 
+        finvizcolumn = ["11", "12", "13", "14"] # number is last part of finviz url for scraping, corresponds to columns in col
+        row = ["Natural Gas", "Crude Oil WTI", "Crude Oil Brent", "Ethanol", "Palladium", "Copper", "Platinum", "Silver", "Gold", "Lumber", "Cotton", "Cocoa", "Sugar", "Coffee",
+                "Rough Rice", "Wheat", "Corn", "Oats", "USD", "EUR", "5 Year Note", "10 Year Note", "30 Year Bond"]
+        zer = np.zeros((len(row), len(col)))
+        futu = pd.DataFrame(data=zer, index=row, columns=col)
+
+        # run scraping for the columns
+        for i, val in enumerate(col):
+            futu[val] = self.scrapfutures(column=finvizcolumn[i], row=row)
+            time.sleep(2)
+        return futu
+
+    def prettify(self, table):
+        # formats
+        def make_bold(val):
+                # target _blank to open new window
+                return "<b>{}</b>".format(val)
+        def style_negative(v, props=''):
+            return props if v <= 0 else None
+        def style_positive(v, props=''):
+            return props if v > 0 else None
+        # assign color to value
+        # add % (convert to string)
+        # linkable rowname?
+        return table.style.format("{:.2f}").applymap(style_negative, props='color:red;').applymap(style_positive, props='color:green;')
+
 # ------------------------- testing / editing of functions and classes
 
 def main():
-    momentum_usmarkets()
+
     return
 
 if __name__ == '__main__':
