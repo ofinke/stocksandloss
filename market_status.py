@@ -442,7 +442,7 @@ class futures():
     def returnfutures(self):
         # define dataframe
         # problem, currently cannot scrap year as the ast.literal_eval() function get stuck on ethanol which returns null for some reason
-        col = ["Day", "Week", "Month", "Quarter"] 
+        col = ["Day [%]", "Week [%]", "Month [%]", "Quarter [%]"] 
         finvizcolumn = ["11", "12", "13", "14"] # number is last part of finviz url for scraping, corresponds to columns in col
         row = ["Natural Gas", "Crude Oil WTI", "Crude Oil Brent", "Ethanol", "Palladium", "Copper", "Platinum", "Silver", "Gold", "Lumber", "Cotton", "Cocoa", "Sugar", "Coffee",
                 "Rough Rice", "Wheat", "Corn", "Oats", "USD", "EUR", "5 Year Note", "10 Year Note", "30 Year Bond"]
