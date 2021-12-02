@@ -343,7 +343,7 @@ def momentum_usmarkets():
 class screeners():
     def newhighs(self):
         # url for the specific screener
-        url = "https://finviz.com/screener.ashx?v=411&s=ta_newhigh&f=ind_stocksonly,sh_avgvol_o100,sh_float_o5,sh_relvol_o1"
+        url = "https://finviz.com/screener.ashx?v=411&s=ta_newhigh&f=ind_stocksonly,sh_avgvol_o100,sh_float_o2,sh_relvol_o1&o=-relativevolume"
         # scrape the data
         req = Request(url, headers={'User-Agent': "Chrome/95.0"})
         webpage = urlopen(req).read()
@@ -356,7 +356,7 @@ class screeners():
 
     def fiftyday(self):
         # url for the specific screener
-        url = "https://finviz.com/screener.ashx?v=411&f=fa_debteq_u1,fa_eps5years_o10,fa_sales5years_o10,ind_stocksonly,sh_avgvol_o100,sh_float_o5,sh_relvol_o1,ta_highlow50d_nh"
+        url = "https://finviz.com/screener.ashx?v=411&f=fa_debteq_u1,fa_epsyoy_pos,fa_epsyoy1_pos,fa_sales5years_o5,fa_salesqoq_pos,ind_stocksonly,sh_avgvol_o100,sh_float_o2,sh_relvol_o1,ta_highlow50d_nh&ft=2&o=-relativevolume"
         # scrape the data
         req = Request(url, headers={'User-Agent': "Chrome/95.0"})
         webpage = urlopen(req).read()
