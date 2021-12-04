@@ -278,8 +278,8 @@ def longterm_usmarkets():
 
 def momentum_usmarkets():
     # load the dataframe and compare the dates
-    df = pd.read_excel("marketmomentum.xlsx", index_col=0)
-    if df.loc[df.index[-1], "date"] != dt.date.today():
+    df = pd.read_excel("Data/marketmomentum.xlsx", index_col=0)
+    if df.loc[df.index[-1], "date"] != ind.shifttolastbusday(dt.date.today()):
         # scrape the data
         url = "https://finviz.com/"
         req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -292,7 +292,7 @@ def momentum_usmarkets():
         cols =["date", "advancing", "declining", "addiff", "highs", "lows", "hldiff", "above50", "below50", "abdiff"]
         ndf = pd.DataFrame([], columns=cols)
         # fill it with data
-        ndf.loc[0, "date"] = dt.datetime.today()
+        ndf.loc[0, "date"] = ind.shifttolastbusday(dt.datetime.today())
         ndf.loc[0, "advancing"] = int(ups[0].span.text)
         ndf.loc[0, "declining"] = int(downs[0].span.text)
         ndf.loc[0, "addiff"] = ndf.loc[0, "advancing"] - ndf.loc[0, "declining"]
@@ -304,9 +304,10 @@ def momentum_usmarkets():
         ndf.loc[0, "abdiff"] = ndf.loc[0, "above50"] - ndf.loc[0, "below50"]
 
         df = pd.concat([df, ndf], ignore_index=True)
-        df.to_excel("marketmomentum.xlsx")
+        df.to_excel("Data/marketmomentum.xlsx")
         # there is bug with the dates, its unable to set the xtickslabels properly when new row is added
 
+    print("Last update done: " + dt.datetime.today().strftime("%d-%m-%Y at %H:%M:%S"))
     df["date"] = pd.to_datetime(df["date"])
     # plot the data
     fig, ax = plt.subplots(nrows=2, figsize=(20,6))
@@ -436,7 +437,7 @@ class futures():
         stringmess = stringmess.split("[")[1].split("]")[0] # extract the dictionary definition
         scrapedvals = pd.DataFrame(data=ast.literal_eval(stringmess)) # convert mess to dataframe
         scrapedvals = scrapedvals[scrapedvals["label"].isin(row)].reset_index(drop=True) #drop values Im not interested in
-        scrapedvals = scrapedvals.set_index(scrapedvals["label"].values).reindex(row) # redefine index and sort it so it corresponds to how "row" is sorted
+        scrapedvals = scrapedvals.set_index(scrapedvals["label"].values).reindex(row) # redefine index and sort it so it corresponds to how variable "row" is sorted
         return scrapedvals["perf"]
 
     def returnfutures(self):

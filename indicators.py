@@ -1,4 +1,4 @@
-# ANALYZER
+# INDICATORS
 # group of functions to analyze stock data
 # all functions work followingly:
 # input:
@@ -11,6 +11,7 @@ import pandas as pd
 import numpy as np
 import scraper as sc
 import matplotlib.pyplot as plt
+import datetime as dt
 import time
 
 # SIMPLE MOVING AVERAGE
@@ -174,6 +175,12 @@ def sma_bounces(data, smaLine):
       if (bounces[i] - bounces[i-1]) < 10:
         todel.append(i)
     return np.delete(bounces,todel)
+
+# MISC functions
+def shifttolastbusday(date):
+    # shifts date to last business day
+    shift = [3, 1, 1, 1, 1, 1, 2]
+    return date - dt.timedelta(days=shift[date.weekday()])
 
 # TESTING RUNTIME
 def main():
