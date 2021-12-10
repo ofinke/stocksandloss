@@ -88,7 +88,22 @@ class sectors():
         ax[2].set_title("YTD", fontsize=20)
 
         plt.show()
+    
+    def industries(self):
+        url = "https://finviz.com/groups.ashx?g=industry&v=140&o=-perf4w"
+        # scrape the data
+        req = Request(url, headers={'User-Agent': "Chrome/95.0"})
+        webpage = urlopen(req).read()
+        soup = BeautifulSoup(webpage, "html.parser")
         
+        # reading the table into the pandas dataframe, step by step
+        # find the full table
+        htmltable = soup.find_all("table", width="100%", cellspacing="1", cellpadding="3", border="0", bgcolor="#d3d3d3")[0]
+        rows = htmltable.find_all("tr") # Don't know why, but the first row has ~1800 lines and also holds rest of the table, I'll just extract the column names
+        
+        for i in range(13):
+                print("lol")
+        return
 
 class worldmarkets():
     def show(self):
@@ -473,7 +488,8 @@ class futures():
 # ------------------------- testing / editing of functions and classes
 
 def main():
-
+    s = sectors()
+    s.industries()
     return
 
 if __name__ == '__main__':
