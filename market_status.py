@@ -69,7 +69,7 @@ class sectors():
     def show2(self):
         # define figure
         fig = plt.figure(figsize=(16,12))
-        gs = gridspec.GridSpec(ncols=3,nrows=6, hspace=0.18)
+        gs = gridspec.GridSpec(ncols=3,nrows=6, hspace=0.075, width_ratios=[1.2,1.2,1])
         # sectors and column names for performance
         indices = ["XLC", "XLY", "XLP", "XLE", "XLF", "XLV", "XLI", "XLB", "XLRE", "XLK", "XLU"]
         performance = ["YTD", "MTD", "Day"]
@@ -97,7 +97,7 @@ class sectors():
             ax.plot(sma, color="k", alpha=0.5)
             ax.set_xlim([150, sector.data.shape[0]])
             ax.set_ylim([np.min(sector.data["Low"][150:])*0.9, np.max(sector.data["High"][150:])*1.05])
-            ax.set_ylabel(indices[i])
+            ax.set_ylabel(indices[i], weight="bold")
             ax.legend(loc=3)
             ax.text(0.04, 0.92, names[i], ha="left", va="top", transform=ax.transAxes, weight="bold")
             if i == 5 or i == 10:
@@ -110,20 +110,24 @@ class sectors():
         
         # barcharts
         df = df.iloc[::-1] # reversing dataframe so its plotted better
+        ngs = gs[:,2].subgridspec(2,1, hspace=0.15)# subgridspec
         # month
-        bch1 = fig.add_subplot(gs[0:3,2])
+        bch1 = fig.add_subplot(ngs[0,0])
         col = np.array(["g"]*len(df))
         col[np.where(df["MTD"]<0)[0]] = "r"
         bch1.barh(df.index, df["MTD"], color=col, alpha=0.5, edgecolor=col)
-        bch1.set_ylabel("Last 20 Trading days")
+        bch1.set_title("Last 20 Trading days", weight="bold", fontsize="medium")
+        bch1.grid(axis="x", linestyle="--")
 
-        bch2 = fig.add_subplot(gs[3:6,2]) 
+        bch2 = fig.add_subplot(ngs[1,0]) 
         col = np.array(["g"]*len(df))
         col[np.where(df["YTD"]<0)[0]] = "r"
         bch2.barh(df.index, df["YTD"], color=col, alpha=0.5, edgecolor=col)
-        bch2.set_ylabel("Last year")
+        bch2.set_title("Last year", weight="bold", fontsize="medium")
         bch2.set_xlabel("Change [%]")
+        bch2.grid(axis="x", linestyle="--")
 
+        
         plt.show()
 
     def performance(self):
@@ -216,6 +220,67 @@ class worldmarkets():
         ax[1,2].axis("off")
         plt.show()
 
+    def show2(self):
+        fig = plt.figure(figsize=(16,8))
+        gs = gridspec.GridSpec(ncols=3,nrows=3, hspace=0.075, width_ratios=[1.2,1.2,1])
+        indices = ["^HSI", "^N225", "STW.AX", "^FTMC", "^GDAXI"]
+        performance = ["YTD", "MTD", "Day"]
+        # dataframe for performance
+        df = pd.DataFrame(index=indices, columns=performance)
+        names = ["Hong Kong: Hang Seng", "Japan: Nikkei 225", "Australia: ASX 200", "United Kingdom: FTSE250", "Germany: DAX"]
+        axpos = [[0,0], [1,0], [2,0], [0,1], [1,1]]
+
+        for i, val in enumerate(indices):
+            sector = stock_daily(val, save=False)
+            # calculating performance
+            df.loc[val, "Day"] = np.round((sector.data.loc[len(sector.data)-1, "Close"]/sector.data.loc[len(sector.data)-2, "Close"]-1)*100,2)
+            ytd =  np.where(sector.data["Date"].to_numpy() >= np.datetime64(dt.datetime(dt.datetime.today().year,1,1)))[0][0]
+            df.loc[val,"YTD"] = np.round(((sector.data.loc[len(sector.data)-1, "Close"]/sector.data.loc[ytd, "Close"])-1)*100,2)
+            df.loc[val,"MTD"] = np.round(((sector.data.loc[len(sector.data)-1, "Close"]/sector.data.loc[len(sector.data)-21, "Close"])-1)*100,2)
+            
+            sma = ind.sma(sector.data, 100)["SMA"]
+            # plots
+            ax = fig.add_subplot(gs[axpos[i][0], axpos[i][1]])
+            lab = "Change: " + str(df.loc[val, "Day"]) + "%"
+            if sector.data.iloc[-1,4] < sector.data.iloc[-1,1]:
+                ax.plot(sector.data.index, sector.data["Close"], color="r", label=lab)
+                ax.fill_between(sector.data.index, sector.data["Close"], color="r", alpha=0.5)
+            else:
+                ax.plot(sector.data.index, sector.data["Close"], color="g", label=lab)
+                ax.fill_between(sector.data.index, sector.data["Close"], color="g", alpha=0.5)
+            ax.plot(sma, color="k", alpha=0.5)
+            ax.set_xlim([150, sector.data.shape[0]])
+            ax.set_ylim([np.min(sector.data["Low"][150:])*0.9, np.max(sector.data["High"][150:])*1.05])
+            ax.legend(loc=3)
+            ax.text(0.04, 0.92, names[i], ha="left", va="top", transform=ax.transAxes, weight="bold")
+            if i == 5 or i == 10:
+                tick = np.linspace(150, sector.data.shape[0]-1, 6, dtype=int)
+                ax.set_xticks(tick)
+                ax.set_xticklabels(sector.data.loc[tick,"Date"].dt.strftime("%d/%m"))
+            else:
+                ax.set_xticks([])
+                ax.set_xticklabels([])
+
+        # barcharts
+        df = df.iloc[::-1] # reversing dataframe so its plotted better
+        ngs = gs[:,2].subgridspec(2,1, hspace=0.2)# subgridspec
+        # month
+        bch1 = fig.add_subplot(ngs[0,0])
+        col = np.array(["g"]*len(df))
+        col[np.where(df["MTD"]<0)[0]] = "r"
+        bch1.barh(df.index, df["MTD"], color=col, alpha=0.5, edgecolor=col)
+        bch1.set_title("Last 20 Trading days", weight="bold", fontsize="medium")
+        bch1.grid(axis="x", linestyle="--")
+
+        bch2 = fig.add_subplot(ngs[1,0]) 
+        col = np.array(["g"]*len(df))
+        col[np.where(df["YTD"]<0)[0]] = "r"
+        bch2.barh(df.index, df["YTD"], color=col, alpha=0.5, edgecolor=col)
+        bch2.set_title("Last year", weight="bold", fontsize="medium")
+        bch2.set_xlabel("Change [%]")
+        bch2.grid(axis="x", linestyle="--")
+        plt.show()
+
     def performance(self):
             perf = self.perf
             fig, ax = plt.subplots(ncols=3, figsize=(20,3))
@@ -239,6 +304,135 @@ class worldmarkets():
             ax[2].set_title("YTD", fontsize=20)
 
             plt.show()
+
+def usmarkets():
+    # plan, gridspec 4 rows, 3 columns
+    # 1 row: SPY, NASDAQ, IWM last year (without volume, line plot)
+    # 2 row: SPY, NASDAQ, IWM last 6 months (volume, candlesticks, SMAs and others)
+    # 3 row: VFI
+    # 4 row: subgridspec containing barcharts with new high low, advancing, declining and others
+    # INDICES PLOT
+    fig = plt.figure(figsize=(16,12))
+    gs = gridspec.GridSpec(nrows=4,ncols=3, height_ratios=[0.5,1,0.3,1])
+
+    indices = ["SPY", "^IXIC", "IWM"]
+    names = ["SPY [S&P500]", "Nasdaq Composite", "IWM [Russell 2000]"]
+    ly = ["SPY Last Year", "Nasdaq Last Year", "IWM Last Year"]
+
+    for i, val in enumerate(indices):
+        stock = stock_daily(val, save=False)
+        # calculate change
+        change = np.round((stock.data.loc[len(stock.data)-1, "Close"]/stock.data.loc[len(stock.data)-2, "Close"]-1)*100,2)
+        lab = "Change: " + str(change) + "%"
+        # 1 year plot
+        ax1 = fig.add_subplot(gs[0,i])
+        ax1.plot(stock.data["Close"], color="tab:blue", linewidth=2)
+        ax1.fill_between(stock.data.index, stock.data["Close"], color="tab:blue", alpha=0.5)
+        tick = np.linspace(stock.data.index[0], stock.data.index[-1]-1, 4, dtype=int)
+        ax1.set_xticks(tick)
+        ax1.set_xticklabels(stock.data.loc[tick,"Date"].dt.strftime("%d/%m"))
+        ax1.set_xlim([stock.data.index[0], stock.data.index[-1]])
+        ax1.set_ylim([np.min(stock.data["Low"])*0.9, np.max(stock.data["High"])*1.05])
+        ax1.text(0.03, 0.92, ly[i], ha="left", va="top", transform=ax1.transAxes)
+
+        # 6 months candlesticks
+        green = stock.data.index.where(stock.data["Close"] >= stock.data["Open"])
+        red = stock.data.index.where(stock.data["Close"] < stock.data["Open"])
+        rang = [150, stock.data.shape[0]]
+        bollb = ind.bollbands(stock.data, stdn=1)
+
+        ax2 = fig.add_subplot(gs[1,i])
+        ax2.vlines(green, stock.data["Low"], stock.data["High"], color="g")
+        ax2.scatter(green, stock.data["Open"], marker="_", color="g", s=10)
+        ax2.scatter(green, stock.data["Close"], marker="_", color="g", s=10)
+        ax2.vlines(red, stock.data["Low"], stock.data["High"], color="r")
+        ax2.scatter(red, stock.data["Open"], marker="_", color="r", s=10)
+        ax2.scatter(red, stock.data["Close"], marker="_", color="r", s=10)
+        ax2.plot(bollb["upper"], color="b", alpha=0.3)
+        ax2.plot(bollb["lower"], color="b", alpha=0.3)
+        ax2.fill_between(np.arange(bollb.shape[0]), bollb["lower"], bollb["upper"], color="b", alpha=0.05)
+        axy = ax2.twinx()
+        axy.vlines(red, 0, stock.data["Volume"], color="r")
+        axy.vlines(green, 0, stock.data["Volume"], color="g")
+        axy.set_ylim([0, np.max(stock.data["Volume"][150:])*3.5])
+        axy.set_yticklabels([])
+        axy.set_yticks([])
+        ax2.set_xlim(rang)
+        tick = np.linspace(rang[0], rang[1]-1, 6, dtype=int)
+        ax2.text(0.03, 0.96, names[i], ha="left", va="top", transform=ax2.transAxes, weight="bold")
+        ax2.text(0.03, 0.88, lab, ha="left", va="top", transform=ax2.transAxes)
+        ax2.set_xticks(tick)
+        ax2.set_xticklabels(stock.data.loc[tick,"Date"].dt.strftime("%d/%m"))
+        ax2.set_ylim([np.min(stock.data["Low"][150:])*0.9, np.max(stock.data["High"][150:])*1.05])
+        # vfi
+        vfi = ind.vfi(stock.data, period=30, coef=0.2, vcoef=1.5)
+        ax3 = fig.add_subplot(gs[2,i])
+        ax3.plot(vfi["vfi"])
+        ax3.plot(vfi["vfi_smooth"])
+        ax3.vlines(stock.data.index, 0, vfi["histogram"], "k", alpha=0.5)
+        ax3.set_xlim(rang)
+        ax3.set_yticks([])
+        ax3.set_yticklabels([])
+        ax3.set_xticks([])
+        ax3.set_xticklabels([])
+
+    # MOMENTUM PLOT
+    # scrap momentum data
+    # load the dataframe and compare the dates
+    df = pd.read_excel("Data/marketmomentum.xlsx", index_col=0)
+    if df.loc[df.index[-1], "date"] != ind.shifttolastbusday(dt.date.today()):
+        # scrape the data
+        url = "https://finviz.com/"
+        req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        webpage = urlopen(req).read()
+        soup = BeautifulSoup(webpage, "html.parser")
+        ups = soup.findAll("div", {"class": "market-stats_labels_left"})
+        downs = soup.findAll("div", {"class": "market-stats_labels_right"})
+
+        # create dataframe with new data
+        cols =["date", "advancing", "declining", "addiff", "highs", "lows", "hldiff", "above50", "below50", "abdiff"]
+        ndf = pd.DataFrame([], columns=cols)
+        # fill it with data
+        ndf.loc[0, "date"] = ind.shifttolastbusday(dt.datetime.today())
+        ndf.loc[0, "advancing"] = int(ups[0].span.text)
+        ndf.loc[0, "declining"] = int(downs[0].span.text)
+        ndf.loc[0, "addiff"] = ndf.loc[0, "advancing"] - ndf.loc[0, "declining"]
+        ndf.loc[0, "highs"] = int(ups[1].span.text)
+        ndf.loc[0, "lows"] = int(downs[1].span.text)
+        ndf.loc[0, "hldiff"] = ndf.loc[0, "highs"] - ndf.loc[0, "lows"]
+        ndf.loc[0, "above50"] = int(ups[2].span.text)
+        ndf.loc[0, "below50"] = int(downs[2].span.text)
+        ndf.loc[0, "abdiff"] = ndf.loc[0, "above50"] - ndf.loc[0, "below50"]
+
+        df = pd.concat([df, ndf], ignore_index=True)
+        df.to_excel("Data/marketmomentum.xlsx")
+        # there is bug with the dates, its unable to set the xtickslabels properly when new row is added
+
+    print("Last update done: " + dt.datetime.today().strftime("%d-%m-%Y at %H:%M:%S"))
+    df["date"] = pd.to_datetime(df["date"])
+    # plot momentum results
+    ngs = gs[3,:].subgridspec(2,1, hspace=0) # subgridspec
+    axmom1 = fig.add_subplot(ngs[0,0])
+    axmom1.bar(df.index, df["advancing"], color="g", alpha=0.5, edgecolor="g")
+    axmom1.bar(df.index, -df["declining"], color="r", alpha=0.5, edgecolor="r")
+    axmom1.grid(axis="y", linestyle="--")
+    axmom1.set_xlim([-0.5, df.index[-1]+0.5])
+    axmom1.text(0.01, 0.9, "Advancing & Declining", ha="left", va="top", transform=axmom1.transAxes, weight="bold",
+        bbox=dict(facecolor="w", edgecolor="lightgray", pad=5))
+
+    axmom2 = fig.add_subplot(ngs[1,0])
+    col = np.array(["g"]*len(df["hldiff"]))
+    col[np.where(df["hldiff"]<0)[0]] = "r"
+    axmom2.bar(df.index, df["hldiff"], color=col, alpha=0.5, edgecolor=col)
+    axmom2.grid(axis="y", linestyle="--")
+    axmom2.set_xlim([-0.5, df.index[-1]+0.5])
+    axmom2.set_xticks(df.index)
+    axmom2.xaxis.set_tick_params(rotation=90)
+    axmom2.set_xticklabels(df["date"].dt.strftime("%d/%m"))
+    axmom2.text(0.01, 0.9, "New Highs - New Lows", ha="left", va="top", transform=axmom2.transAxes, weight="bold", 
+        bbox=dict(facecolor="w", edgecolor="lightgray", pad=5))
+    
+    plt.show()
 
 def show_usmarkets():
     spy = stock_daily("SPY", save=False)
@@ -549,8 +743,8 @@ class futures():
 # ------------------------- testing / editing of functions and classes
 
 def main():
-    s = sectors()
-    s.show2()
+    w = worldmarkets()
+    w.show2()
     return
 
 if __name__ == '__main__':
