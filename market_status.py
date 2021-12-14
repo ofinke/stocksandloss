@@ -2,6 +2,7 @@
 
 from scraper import stock_daily
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 import indicators as ind
 import pandas as pd
 import numpy as np
@@ -63,6 +64,66 @@ class sectors():
             ax[axpos[i][0],axpos[i][1]].set_ylim([np.min(sector.data["Low"][150:])*0.9, np.max(sector.data["High"][150:])*1.05])
         ax[3,2].axis("off") 
         self.perf = df
+        plt.show()
+
+    def show2(self):
+        # define figure
+        fig = plt.figure(figsize=(16,12))
+        gs = gridspec.GridSpec(ncols=3,nrows=6, hspace=0.18)
+        # sectors and column names for performance
+        indices = ["XLC", "XLY", "XLP", "XLE", "XLF", "XLV", "XLI", "XLB", "XLRE", "XLK", "XLU"]
+        performance = ["YTD", "MTD", "Day"]
+        df = pd.DataFrame(index=indices, columns=performance)
+        names = ["Communication Services", "Consumer Discretionary", "Consumer Staples", "Energy", "Financial", "Health", "Industrial", "Materials", "Real Estate", "Technology ", "Utilities"]
+        axpos = [[0,0], [1,0], [2,0], [3,0], [4,0], [5,0], [0,1], [1,1], [2,1], [3,1], [4,1], [5,1]]
+        for i, val in enumerate(indices):
+            sector = stock_daily(val, save=False)
+            # calculating performance
+            df.loc[val, "Day"] = np.round((sector.data.loc[len(sector.data)-1, "Close"]/sector.data.loc[len(sector.data)-2, "Close"]-1)*100,2)
+            ytd =  np.where(sector.data["Date"].to_numpy() >= np.datetime64(dt.datetime(dt.datetime.today().year,1,1)))[0][0]
+            df.loc[val,"YTD"] = np.round(((sector.data.loc[len(sector.data)-1, "Close"]/sector.data.loc[ytd, "Close"])-1)*100,2)
+            df.loc[val,"MTD"] = np.round(((sector.data.loc[len(sector.data)-1, "Close"]/sector.data.loc[len(sector.data)-21, "Close"])-1)*100,2)
+            
+            sma = ind.sma(sector.data, 100)["SMA"]
+            # plots
+            ax = fig.add_subplot(gs[axpos[i][0], axpos[i][1]])
+            lab = "Change: " + str(df.loc[val, "Day"]) + "%"
+            if sector.data.iloc[-1,4] < sector.data.iloc[-1,1]:
+                ax.plot(sector.data.index, sector.data["Close"], color="r", label=lab)
+                ax.fill_between(sector.data.index, sector.data["Close"], color="r", alpha=0.5)
+            else:
+                ax.plot(sector.data.index, sector.data["Close"], color="g", label=lab)
+                ax.fill_between(sector.data.index, sector.data["Close"], color="g", alpha=0.5)
+            ax.plot(sma, color="k", alpha=0.5)
+            ax.set_xlim([150, sector.data.shape[0]])
+            ax.set_ylim([np.min(sector.data["Low"][150:])*0.9, np.max(sector.data["High"][150:])*1.05])
+            ax.set_ylabel(indices[i])
+            ax.legend(loc=3)
+            ax.text(0.04, 0.92, names[i], ha="left", va="top", transform=ax.transAxes, weight="bold")
+            if i == 5 or i == 10:
+                tick = np.linspace(150, sector.data.shape[0]-1, 6, dtype=int)
+                ax.set_xticks(tick)
+                ax.set_xticklabels(sector.data.loc[tick,"Date"].dt.strftime("%d/%m"))
+            else:
+                ax.set_xticks([])
+                ax.set_xticklabels([])
+        
+        # barcharts
+        df = df.iloc[::-1] # reversing dataframe so its plotted better
+        # month
+        bch1 = fig.add_subplot(gs[0:3,2])
+        col = np.array(["g"]*len(df))
+        col[np.where(df["MTD"]<0)[0]] = "r"
+        bch1.barh(df.index, df["MTD"], color=col, alpha=0.5, edgecolor=col)
+        bch1.set_ylabel("Last 20 Trading days")
+
+        bch2 = fig.add_subplot(gs[3:6,2]) 
+        col = np.array(["g"]*len(df))
+        col[np.where(df["YTD"]<0)[0]] = "r"
+        bch2.barh(df.index, df["YTD"], color=col, alpha=0.5, edgecolor=col)
+        bch2.set_ylabel("Last year")
+        bch2.set_xlabel("Change [%]")
+
         plt.show()
 
     def performance(self):
@@ -489,7 +550,7 @@ class futures():
 
 def main():
     s = sectors()
-    s.industries()
+    s.show2()
     return
 
 if __name__ == '__main__':
