@@ -79,21 +79,58 @@ def sectors():
     plt.show()
 
 # print industries results (table)
-def industries():
-    url = "https://finviz.com/groups.ashx?g=industry&v=140&o=-perf4w"
-    # scrape the data
-    req = Request(url, headers={'User-Agent': "Chrome/95.0"})
-    webpage = urlopen(req).read()
-    soup = BeautifulSoup(webpage, "html.parser")
+class industries():
+    # constructor = scrapes the table
+    def scrap(self):
+        url = "https://finviz.com/groups.ashx?g=industry&v=140&o=-perf4w"
+        # scrape the data
+        req = Request(url, headers={'User-Agent': "Chrome/95.0"})
+        webpage = urlopen(req).read()
+        soup = BeautifulSoup(webpage, "html.parser")
+        
+        # reading the table into the pandas dataframe, step by step
+        # find the full table
+        htmltable = soup.find_all("table", width="100%", cellspacing="1", cellpadding="3", border="0", bgcolor="#d3d3d3")[0]
+        rows = htmltable.find_all("tr") # Don't know why, but the first row has ~1800 lines and also holds rest of the table, I'll just extract the column names
+        table_width = len(rows[1].find_all("td"))
+
+        # extract column names
+        cols = [None] * table_width
+        cols_row = rows[0].find_all("td")
+        for k in range(table_width):
+            cols[k] = cols_row[k].text
+        del cols_row
+        # create empty DataFrame
+        newdata = pd.DataFrame(index=np.arange(len(rows)-1), columns=cols)
+        # fill the frame with data
+        # start with rows
+        for i in newdata.index+1: # index manipulated so I skip the column row
+            scrapedrow = rows[i].find_all("td") 
+            # go through rows
+            for j, val in enumerate(cols):
+                newdata.loc[i-1, val] = scrapedrow[j].string
+        # manipulate the DataFrame (delete shit and set correct datatypes)
+        newdata = newdata.drop(columns=["No."])
+        perccols = ['Perf Week', 'Perf Month', 'Perf Quart', 'Perf Half', 'Perf Year', 'Perf YTD', 'Change']
+        for i, val in enumerate(perccols):
+            newdata[val] = newdata[val].map(lambda x: x.rstrip("%")).astype("float")
+        # safe into the object
+        return newdata
     
-    # reading the table into the pandas dataframe, step by step
-    # find the full table
-    htmltable = soup.find_all("table", width="100%", cellspacing="1", cellpadding="3", border="0", bgcolor="#d3d3d3")[0]
-    rows = htmltable.find_all("tr") # Don't know why, but the first row has ~1800 lines and also holds rest of the table, I'll just extract the column names
-    
-    for i in range(13):
-            print("lol")
-    return
+    def prettify(self, table):
+        # formats
+        def style_negative(v, props=''):
+            return np.where(v <= 0, props, None)
+        def style_positive(v, props=''):
+            return np.where(v > 0, props, None)
+        table = table.set_index("Name")
+        table.index.name = None
+        table = table.drop(columns=["Recom", "Avg Volume", "Volume", "Perf Quart", "Perf YTD"])
+        numcols = ['Perf Week', 'Perf Month', 'Perf Half', 'Perf Year', 'Change']
+        # linkable rowname?
+        return table.style.format("{:.2f}", subset=numcols).apply(style_negative, props='color:red;', subset=numcols)\
+            .apply(style_positive, props='color:green;', subset=numcols)\
+            .set_table_attributes("style='display:inline'")
 
 # print world market results (image)
 def worldmarkets():
@@ -343,13 +380,13 @@ class screeners():
         tickers = soup.find_all("span", onclick=lambda onclick: onclick and onclick.startswith("window.location='quote.ashx?t"))
         return pd.DataFrame(data={"Tickers": (val.text for i, val in enumerate(tickers))})
 
-    def prettify(df, ncols=15):
+    def prettify(self, df, ncols=15):
         # nested function fot clickable links to results
         def make_clickable(val):
             # target _blank to open new window
             return '<a target="_blank" href="https://finviz.com/quote.ashx?t={}" style="text-decoration: none">{}</a>'.format(val, val)
         
-        data = df["Tickers"].map(lambda x: x.lstrip("\xa0").rstrip("\xa0"))
+        data = df["Tickers"].map(lambda x: x.lstrip("\xa0").rstrip("\xa0")).values
 
         if (data.shape[0] % ncols) > 0:
             em = np.zeros(ncols-(df.shape[0] % ncols)).astype(str)
@@ -428,7 +465,7 @@ class futures():
 # ------------------------- testing / editing of functions and classes
 
 def main():
-    sectors()
+    i = industries()
     return
 
 if __name__ == '__main__':
