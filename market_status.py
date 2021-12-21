@@ -123,14 +123,14 @@ class industries():
             return np.where(v <= 0, props, None)
         def style_positive(v, props=''):
             return np.where(v > 0, props, None)
-        table = table.set_index("Name")
-        table.index.name = None
         table = table.drop(columns=["Recom", "Avg Volume", "Volume", "Perf Quart", "Perf YTD"])
         numcols = ['Perf Week', 'Perf Month', 'Perf Half', 'Perf Year', 'Change']
         # linkable rowname?
         return table.style.format("{:.2f}", subset=numcols).apply(style_negative, props='color:red;', subset=numcols)\
             .apply(style_positive, props='color:green;', subset=numcols)\
-            .set_table_attributes("style='display:inline'")
+            .set_table_attributes("style='display:inline'")\
+            .set_properties(subset=["Name"], **{'width': '300px'})\
+            .hide_index()
 
 # print world market results (image)
 def worldmarkets():
