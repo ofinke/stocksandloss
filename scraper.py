@@ -91,6 +91,22 @@ class stock_daily():
 
         return
 
+class stock_weekly():
+    def __init__(self, ticker, edate=dt.date.today(), delta=dt.timedelta(days=365)):
+        self.ticker = ticker
+        self.scrap(startdate=edate-delta, enddate=edate)
+        self.data = self.scraped
+        return
+    
+    # METHODS
+    def scrap(self, startdate, enddate):
+        # create yfinance object
+        st = yf.Ticker(self.ticker)
+        # download daily data from startdate to enddate withou splits and dividends
+        self.scraped = st.history(start=startdate, end=enddate, interval="1wk", actions=False)
+        self.scraped = self.scraped.reset_index().rename(columns={self.scraped.index.name:"Date"})
+        return
+
 # RUNTIME
 # testing script runtime
 def main():
