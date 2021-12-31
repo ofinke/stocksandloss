@@ -65,7 +65,10 @@ class setup_image():
         smadt = ind.sma(self.day_data, 200)["SMA"]
         gd = self.day_data.index.where(self.day_data["Close"] >= self.day_data["Open"])
         rd = self.day_data.index.where(self.day_data["Close"] < self.day_data["Open"])
-        rang = [self.day_data.shape[0]-150, self.day_data.shape[0]]
+        if (self.day_data.shape[0]-150) < 0:
+            rang = [0, self.day_data.shape[0]]
+        else:
+            rang = [self.day_data.shape[0]-150, self.day_data.shape[0]]
         ngsd = gs[1,:].subgridspec(2,1, hspace=0, height_ratios=[3,1]) # subgridspec
         axd = fig.add_subplot(ngsd[0,0])
         axd.text(0.015, 0.95, "daily", ha="left", va="top", transform=axd.transAxes, weight="bold")
@@ -110,7 +113,7 @@ class setup_image():
 
 # ------------------------- testing / editing of functions and classes
 def main():
-    s = setup_image("AMD")
+    s = setup_image("GDYN")
     plt.show()
     return
 

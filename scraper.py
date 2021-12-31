@@ -14,6 +14,7 @@ import numpy as np
 import os
 import time
 
+# scrapes daily data and supports saving and updating them in csv
 class stock_daily():
     # CONSTRUCTOR
     def __init__(self, ticker, save=True, edate=dt.date.today(), delta=dt.timedelta(days=365), pth=os.getcwd()):
@@ -91,6 +92,7 @@ class stock_daily():
 
         return
 
+# scrapes weekly data, doesn't support save/load
 class stock_weekly():
     def __init__(self, ticker, edate=dt.date.today(), delta=dt.timedelta(days=365)):
         self.ticker = ticker
@@ -107,17 +109,21 @@ class stock_weekly():
         self.scraped = self.scraped.reset_index().rename(columns={self.scraped.index.name:"Date"})
         return
 
+# scrapes eps data, automatically updates them in file
+class stock_eps():
+    def __init__(self, ticker):
+        self.ticker = ticker
+
+        st = yf.Ticker(self.ticker)
+
+        print(st.financials)
+        return
+
+
 # RUNTIME
 # testing script runtime
 def main():
-    start = time.time()
-    s = stock_daily("TSLA", save=True)
-    print("Scraping took " + str(np.round(time.time()-start,3)) + " sec.")
-    # testing the scraper
-    # st = yf.Ticker("TSLA")
-    # scraped = st.history(period="1y", interval="1d", actions=False)
-    # scraped = scraped.reset_index().rename(columns={scraped.index.name:"Date"})
-    # print(scraped.iloc[-1, 0])
+    stock_eps("MSFT")
     return
 
 if __name__ == "__main__":
