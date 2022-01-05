@@ -81,6 +81,13 @@ def sectors():
 # print industries results (table)
 class industries():
     # constructor = scrapes the table
+    def __init__(self, sf=True):
+        # scrap new data
+        self.scrap()
+        # save if desired
+        if sf:
+            self.save()
+        return
     def scrap(self):
         url = "https://finviz.com/groups.ashx?g=industry&v=140&o=-perf4w"
         # scrape the data
@@ -115,7 +122,8 @@ class industries():
         for i, val in enumerate(perccols):
             newdata[val] = newdata[val].map(lambda x: x.rstrip("%")).astype("float")
         # safe into the object
-        return newdata
+        self.table = newdata
+        return
     
     def prettify(self, table):
         # formats
@@ -131,6 +139,12 @@ class industries():
             .set_table_attributes("style='display:inline'")\
             .set_properties(subset=["Name"], **{'width': '300px'})\
             .hide_index()
+
+    def save(self):
+        date = ind.shifttolastmarketday(dt.date.today())
+        with pd.ExcelWriter("Data/industry_"+str(date.strftime("%Y"))+".xlsx", mode="a") as writer:
+            self.table.to_excel(writer, sheet_name=date.strftime("%Y-%m-%d"))
+        return
 
 # print world market results (image)
 def worldmarkets():
@@ -271,7 +285,7 @@ def usmarkets():
     # scrap momentum data
     # load the dataframe and compare the dates
     df = pd.read_excel("Data/marketmomentum.xlsx", index_col=0)
-    if df.loc[df.index[-1], "date"] != ind.shifttolastbusday(dt.date.today()):
+    if df.loc[df.index[-1], "date"] != ind.shifttolastmarketday(dt.date.today()):
         # scrape the data
         url = "https://finviz.com/"
         req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -284,7 +298,7 @@ def usmarkets():
         cols =["date", "advancing", "declining", "addiff", "highs", "lows", "hldiff", "above50", "below50", "abdiff"]
         ndf = pd.DataFrame([], columns=cols)
         # fill it with data
-        ndf.loc[0, "date"] = ind.shifttolastbusday(dt.datetime.today())
+        ndf.loc[0, "date"] = ind.shifttolastmarketday(dt.datetime.today())
         ndf.loc[0, "advancing"] = int(ups[0].span.text)
         ndf.loc[0, "declining"] = int(downs[0].span.text)
         ndf.loc[0, "addiff"] = ndf.loc[0, "advancing"] - ndf.loc[0, "declining"]
@@ -465,7 +479,8 @@ class futures():
 # ------------------------- testing / editing of functions and classes
 
 def main():
-    i = industries()
+    s = industries()
+    s.scrap(sf=True)
     return
 
 if __name__ == '__main__':

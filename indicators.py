@@ -177,7 +177,7 @@ def sma_bounces(data, smaLine):
     return np.delete(bounces,todel)
 
 # MISC functions
-def shifttolastbusday(date):
+def shifttolastmarketday(date):
     # shifts date to last business day
     shift = [3, 1, 1, 1, 1, 1, 2]
     return date - dt.timedelta(days=shift[date.weekday()])
