@@ -19,10 +19,10 @@ def sectors():
     fig = plt.figure(figsize=(16,12))
     gs = gridspec.GridSpec(ncols=3,nrows=6, hspace=0.075, width_ratios=[1.2,1.2,1])
     # sectors and column names for performance
-    indices = ["XLC", "XLY", "XLP", "XLE", "XLF", "XLV", "XLI", "XLB", "XLRE", "XLK", "XLU"]
+    indices = ["XLC", "XLY", "XLP", "XLE", "XLF", "XLV", "XLI", "XLB", "XLRE", "XLK", "XLU", "FFTY"]
     performance = ["YTD", "MTD", "Day"]
     df = pd.DataFrame(index=indices, columns=performance)
-    names = ["Communication Services", "Consumer Discretionary", "Consumer Staples", "Energy", "Financial", "Health", "Industrial", "Materials", "Real Estate", "Technology ", "Utilities"]
+    names = ["Communication Services", "Consumer Discretionary", "Consumer Staples", "Energy", "Financial", "Health", "Industrial", "Materials", "Real Estate", "Technology ", "Utilities", "IBDs top 50"]
     axpos = [[0,0], [1,0], [2,0], [3,0], [4,0], [5,0], [0,1], [1,1], [2,1], [3,1], [4,1], [5,1]]
     for i, val in enumerate(indices):
         sector = stock_daily(val, save=False)
@@ -48,7 +48,7 @@ def sectors():
         ax.set_ylabel(indices[i], weight="bold")
         ax.legend(loc=3)
         ax.text(0.04, 0.92, names[i], ha="left", va="top", transform=ax.transAxes, weight="bold")
-        if i == 5 or i == 10:
+        if i == 5 or i == 11:
             tick = np.linspace(150, sector.data.shape[0]-1, 6, dtype=int)
             ax.set_xticks(tick)
             ax.set_xticklabels(sector.data.loc[tick,"Date"].dt.strftime("%d/%m"))
@@ -479,8 +479,7 @@ class futures():
 # ------------------------- testing / editing of functions and classes
 
 def main():
-    s = industries()
-    s.scrap(sf=True)
+    sectors()
     return
 
 if __name__ == '__main__':
