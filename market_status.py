@@ -81,13 +81,19 @@ def sectors():
 # print industries results (table)
 class industries():
     # constructor = scrapes the table
-    def __init__(self, sf=True):
+    def __init__(self, sf=True, rank=True):
         # scrap new data
         self.scrap()
         # save if desired
         if sf:
             self.save()
+        if rank:
+            # load previous day
+            self.load()
+            # add rank column to the 
+            self.addrank()
         return
+        
     def scrap(self):
         url = "https://finviz.com/groups.ashx?g=industry&v=140&o=-perf4w"
         # scrape the data
@@ -125,6 +131,14 @@ class industries():
         self.table = newdata
         return
     
+    def addrank(self):
+        # I have to use names to find out the rank differences
+        old = self.table_old.reset_index().set_index("Name")
+        new = self.table.reset_index().set_index("Name")
+        pos = old.reindex(new.index.values)["index"].values
+        self.table["Position"] = pos - new["index"].values
+        return
+
     def prettify(self, table):
         # formats
         def style_negative(v, props=''):
@@ -132,7 +146,7 @@ class industries():
         def style_positive(v, props=''):
             return np.where(v > 0, props, None)
         table = table.drop(columns=["Recom", "Avg Volume", "Volume", "Perf Quart", "Perf YTD"])
-        numcols = ['Perf Week', 'Perf Month', 'Perf Half', 'Perf Year', 'Change']
+        numcols = ["Perf Week", "Perf Month", "Perf Half", "Perf Year", "Change", "Position"]
         # linkable rowname?
         return table.style.format("{:.2f}", subset=numcols).apply(style_negative, props='color:red;', subset=numcols)\
             .apply(style_positive, props='color:green;', subset=numcols)\
@@ -144,6 +158,20 @@ class industries():
         date = ind.shifttolastmarketday(dt.date.today())
         with pd.ExcelWriter("Data/industry_"+str(date.strftime("%Y"))+".xlsx", mode="a") as writer:
             self.table.to_excel(writer, sheet_name=date.strftime("%Y-%m-%d"))
+        return
+
+    def load(self):
+        # loads sheet names from the excel file and opens correct date
+        lastday = ind.shifttolastmarketday(dt.date.today())
+        file = pd.ExcelFile("Data/industry_"+str(dt.date.today().strftime("%Y"))+".xlsx")
+        # check to load correct sheet (because it depends if I saved the data or not)
+        # this won't work when transitioning years, but who gives a fuck
+        if file.sheet_names[-1] == lastday.strftime("%Y-%m-%d"):
+            sht = file.sheet_names[-2]
+        else:
+            sht = file.sheet_names[-1]
+        # read the table
+        self.table_old = pd.read_excel(file, sht, index_col=0)
         return
 
 # print world market results (image)
@@ -479,7 +507,7 @@ class futures():
 # ------------------------- testing / editing of functions and classes
 
 def main():
-    sectors()
+    s = industries(sf=False, rank=True)
     return
 
 if __name__ == '__main__':
