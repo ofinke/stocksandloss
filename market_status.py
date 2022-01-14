@@ -136,7 +136,7 @@ class industries():
         old = self.table_old.reset_index().set_index("Name")
         new = self.table.reset_index().set_index("Name")
         pos = old.reindex(new.index.values)["index"].values
-        self.table["Position"] = pos - new["index"].values
+        self.table["Position"] = np.round((pos - new["index"].values),0)
         return
 
     def prettify(self, table):
