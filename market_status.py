@@ -146,7 +146,8 @@ class industries():
         def style_positive(v, props=''):
             return np.where(v > 0, props, None)
         table = table.drop(columns=["Recom", "Avg Volume", "Volume", "Perf Quart", "Perf YTD"])
-        numcols = ["Perf Week", "Perf Month", "Perf Half", "Perf Year", "Change", "Position"]
+        table["Position"] = table["Position"].astype("int32")
+        numcols = ["Perf Week", "Perf Month", "Perf Half", "Perf Year", "Change"]
         # linkable rowname?
         return table.style.format("{:.2f}", subset=numcols).apply(style_negative, props='color:red;', subset=numcols)\
             .apply(style_positive, props='color:green;', subset=numcols)\
