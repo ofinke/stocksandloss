@@ -245,8 +245,8 @@ def usmarkets():
     # 3 row: VFI
     # 4 row: subgridspec containing barcharts with new high low, advancing, declining and others
     # INDICES PLOT
-    fig = plt.figure(figsize=(16,12))
-    gs = gridspec.GridSpec(nrows=4,ncols=3, height_ratios=[0.5,1,0.3,1])
+    fig = plt.figure(figsize=(16,14))
+    gs = gridspec.GridSpec(nrows=4,ncols=3, height_ratios=[0.5,1,0.4,1])
 
     indices = ["SPY", "^IXIC", "IWM"]
     names = ["SPY [S&P500]", "Nasdaq Composite", "IWM [Russell 2000]"]
@@ -298,17 +298,27 @@ def usmarkets():
         ax2.set_xticks(tick)
         ax2.set_xticklabels(stock.data.loc[tick,"Date"].dt.strftime("%d/%m"))
         ax2.set_ylim([np.min(stock.data["Low"][150:])*0.9, np.max(stock.data["High"][150:])*1.05])
-        # vfi
-        vfi = ind.vfi(stock.data, period=30, coef=0.2, vcoef=1.5)
-        ax3 = fig.add_subplot(gs[2,i])
-        ax3.plot(vfi["vfi"])
-        ax3.plot(vfi["vfi_smooth"])
-        ax3.vlines(stock.data.index, 0, vfi["histogram"], "k", alpha=0.5)
-        ax3.set_xlim(rang)
-        ax3.set_yticks([])
-        ax3.set_yticklabels([])
-        ax3.set_xticks([])
-        ax3.set_xticklabels([])
+
+    # VIX
+    ngss = gs[2,:].subgridspec(1,2, wspace=0.13, width_ratios=[0.91,2]) # subgridspec
+    stock = stock_daily("^VIX", save=False)
+    axv = fig.add_subplot(ngss[0,1])
+    green = stock.data.index.where(stock.data["Close"] >= stock.data["Open"])
+    red = stock.data.index.where(stock.data["Close"] < stock.data["Open"])
+    rang = [150, stock.data.shape[0]]
+    axv.vlines(green, stock.data["Low"], stock.data["High"], color="g", alpha=0.7)
+    axv.scatter(green, stock.data["Open"], marker="_", color="g", s=10, alpha=0.7)
+    axv.scatter(green, stock.data["Close"], marker="_", color="g", s=10, alpha=0.7)
+    axv.vlines(red, stock.data["Low"], stock.data["High"], color="r", alpha=0.7)
+    axv.scatter(red, stock.data["Open"], marker="_", color="r", s=10, alpha=0.7)
+    axv.scatter(red, stock.data["Close"], marker="_", color="r", s=10, alpha=0.7)
+    axv.set_xlim(rang)
+    tick = np.linspace(rang[0], rang[1]-1, 6, dtype=int)
+    axv.set_xticks(tick)
+    axv.set_xticklabels(stock.data.loc[tick,"Date"].dt.strftime("%d/%m"))
+    axv.set_ylim([np.min(stock.data["Low"][150:])*0.9, np.max(stock.data["High"][150:])*1.05])
+    axv.text(0.03, 0.96, "VIX volatility index", ha="left", va="top", transform=ax2.transAxes, weight="bold")
+    axv.text(0.03, 0.88, lab, ha="left", va="top", transform=ax2.transAxes)
 
     # MOMENTUM PLOT
     # scrap momentum data
@@ -366,6 +376,10 @@ def usmarkets():
     axmom2.text(0.01, 0.9, "New Highs - New Lows", ha="left", va="top", transform=axmom2.transAxes, weight="bold", 
         bbox=dict(facecolor="w", edgecolor="lightgray", pad=5))
     
+    # market status
+    # this is positioned to the left of VIX, but code is here because I use data from the marketmomentum.xlsx
+    axs = fig.add_subplot(ngss[0,0])
+
     plt.show()
 
 # scrap and print results from finviz screeners (tables)
@@ -508,7 +522,7 @@ class futures():
 # ------------------------- testing / editing of functions and classes
 
 def main():
-    s = industries(sf=False, rank=True)
+    usmarkets()
     return
 
 if __name__ == '__main__':
