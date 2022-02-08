@@ -103,7 +103,8 @@ class industries():
         
         # reading the table into the pandas dataframe, step by step
         # find the full table
-        htmltable = soup.find_all("table", width="100%", cellspacing="1", cellpadding="3", border="0", bgcolor="#d3d3d3")[0]
+        htmltable = soup.find_all("table", {"class": "table-light"})[0]
+        # width="100%", cellspacing="1", cellpadding="2", border="0", bgcolor="#d3d3d3"
         rows = htmltable.find_all("tr") # Don't know why, but the first row has ~1800 lines and also holds rest of the table, I'll just extract the column names
         table_width = len(rows[1].find_all("td"))
 
@@ -317,8 +318,8 @@ def usmarkets():
     axv.set_xticks(tick)
     axv.set_xticklabels(stock.data.loc[tick,"Date"].dt.strftime("%d/%m"))
     axv.set_ylim([np.min(stock.data["Low"][150:])*0.9, np.max(stock.data["High"][150:])*1.05])
-    axv.text(0.03, 0.96, "VIX volatility index", ha="left", va="top", transform=ax2.transAxes, weight="bold")
-    axv.text(0.03, 0.88, lab, ha="left", va="top", transform=ax2.transAxes)
+    axv.text(0.03, 0.96, "VIX volatility index", ha="left", va="top", transform=axv.transAxes, weight="bold")
+    axv.text(0.03, 0.88, lab, ha="left", va="top", transform=axv.transAxes)
 
     # MOMENTUM PLOT
     # scrap momentum data
@@ -522,7 +523,7 @@ class futures():
 # ------------------------- testing / editing of functions and classes
 
 def main():
-    usmarkets()
+    s = industries()
     return
 
 if __name__ == '__main__':
