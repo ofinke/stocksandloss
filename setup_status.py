@@ -120,7 +120,7 @@ class setup_image():
         axt = fig.add_subplot(gs[0,0])
         axt.set_axis_off()
         # name
-        axt.text(0.015, 0.96, "Shit Trading: "+self.ticker, ha="left", va="top", transform=axt.transAxes, weight="bold")
+        axt.text(0.015, 0.96, "Poop Trading: "+self.ticker, ha="left", va="top", transform=axt.transAxes, weight="bold")
         # industry group and performance (example: "Coal (2M, 8H)") meaning 2nd best monthly performacen, 8th half a year performace
         axt.text(0.015, 0.88, "Industry:", ha="left", va="top", transform=axt.transAxes)
         axt.text(0.015, 0.8, "EPS growth (QTQ):", ha="left", va="top", transform=axt.transAxes)
@@ -132,6 +132,12 @@ class setup_image():
         return
     def save_figure(self):
         # saves the figure as png
+        return
+    def scrape_reuters(self):
+
+        return
+    def scrape_finviz(self):
+
         return
 
 # ------------------------- testing / editing of functions and classes
