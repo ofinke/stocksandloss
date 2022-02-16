@@ -318,8 +318,10 @@ def usmarkets():
     axv.set_xticks(tick)
     axv.set_xticklabels(stock.data.loc[tick,"Date"].dt.strftime("%d/%m"))
     axv.set_ylim([np.min(stock.data["Low"][150:])*0.9, np.max(stock.data["High"][150:])*1.05])
-    axv.text(0.03, 0.96, "VIX volatility index", ha="left", va="top", transform=axv.transAxes, weight="bold")
-    axv.text(0.03, 0.88, lab, ha="left", va="top", transform=axv.transAxes)
+    change = np.round((stock.data.loc[len(stock.data)-1, "Close"]/stock.data.loc[len(stock.data)-2, "Close"]-1)*100,2)
+    lab = "Change: " + str(change) + "%"
+    axv.text(0.015, 0.94, "VIX volatility index", ha="left", va="top", transform=axv.transAxes, weight="bold")
+    axv.text(0.015, 0.76, lab, ha="left", va="top", transform=axv.transAxes)
 
     # MOMENTUM PLOT
     # scrap momentum data
@@ -380,7 +382,16 @@ def usmarkets():
     # market status
     # this is positioned to the left of VIX, but code is here because I use data from the marketmomentum.xlsx
     axs = fig.add_subplot(ngss[0,0])
-
+    # hide everything
+    axs.axis("off")
+    # texts
+    axs.text(0.01, 0.98, "Market Snapshot", ha="left", va="top", transform=axs.transAxes, weight="bold")
+    # vix status
+    axs.text(0.01, 0.80, "VIX:", ha="left", va="top", transform=axs.transAxes)
+    # NASDAQ, SPY, IWM
+    axs.text(0.01, 0.62, "SPY", ha="left", va="top", transform=axs.transAxes)
+    axs.text(0.01, 0.46, "NASDAQ", ha="left", va="top", transform=axs.transAxes)
+    axs.text(0.01, 0.28, "IWM", ha="left", va="top", transform=axs.transAxes)
     plt.show()
 
 # scrap and print results from finviz screeners (tables)
@@ -523,7 +534,7 @@ class futures():
 # ------------------------- testing / editing of functions and classes
 
 def main():
-    s = industries()
+    usmarkets()
     return
 
 if __name__ == '__main__':
