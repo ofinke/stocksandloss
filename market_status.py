@@ -252,6 +252,7 @@ def usmarkets():
     indices = ["SPY", "^IXIC", "IWM"]
     names = ["SPY [S&P500]", "Nasdaq Composite", "IWM [Russell 2000]"]
     ly = ["SPY Last Year", "Nasdaq Last Year", "IWM Last Year"]
+    strat = np.zeros((2, len(indices)))
 
     for i, val in enumerate(indices):
         stock = stock_daily(val, save=False)
@@ -274,8 +275,14 @@ def usmarkets():
         green = stock.data.index.where(stock.data["Close"] >= stock.data["Open"])
         red = stock.data.index.where(stock.data["Close"] < stock.data["Open"])
         rang = [150, stock.data.shape[0]]
-        bollb = ind.bollbands(stock.data, stdn=1)
-
+        sma10 = ind.sma(stock.data,10)["SMA"]
+        sma50 = ind.sma(stock.data,50)["SMA"]
+        sma100 = ind.sma(stock.data,100)["SMA"]
+        emacl1s = ind.ema(stock.data, 5)["EMA"] # ema cloud 1 short
+        emacl1l = ind.ema(stock.data, 13)["EMA"] # ema cloud 1 long
+        emacl2s = ind.ema(stock.data, 34)["EMA"] # ema cloud 1 short
+        emacl2l = ind.ema(stock.data, 50)["EMA"] # ema cloud 1 long
+        # plot
         ax2 = fig.add_subplot(gs[1,i])
         ax2.vlines(green, stock.data["Low"], stock.data["High"], color="g", alpha=0.7)
         ax2.scatter(green, stock.data["Open"], marker="_", color="g", s=10, alpha=0.7)
@@ -283,9 +290,12 @@ def usmarkets():
         ax2.vlines(red, stock.data["Low"], stock.data["High"], color="r", alpha=0.7)
         ax2.scatter(red, stock.data["Open"], marker="_", color="r", s=10, alpha=0.7)
         ax2.scatter(red, stock.data["Close"], marker="_", color="r", s=10, alpha=0.7)
-        ax2.plot(bollb["upper"], color="b", alpha=0.3)
-        ax2.plot(bollb["lower"], color="b", alpha=0.3)
-        ax2.fill_between(np.arange(bollb.shape[0]), bollb["lower"], bollb["upper"], color="b", alpha=0.05)
+        ax2.plot(sma100, color="darkgreen", alpha=0.8)
+        ax2.plot(sma50, color="mediumpurple", alpha=0.8)
+        ax2.fill_between(stock.data.index, emacl1l, emacl1s, where=(emacl1s>=emacl1l), color="g", alpha=0.3, interpolate=True)
+        ax2.fill_between(stock.data.index, emacl1l, emacl1s, where=(emacl1s<emacl1l), color="r", alpha=0.3, interpolate=True)
+        ax2.fill_between(stock.data.index, emacl2l, emacl2s, where=(emacl2s>=emacl2l), color="b", alpha=0.15, interpolate=True)
+        ax2.fill_between(stock.data.index, emacl2l, emacl2s, where=(emacl2s<emacl2l), color="darkorange", alpha=0.3, interpolate=True)
         axy = ax2.twinx()
         axy.vlines(red, 0, stock.data["Volume"], color="r", alpha=0.7)
         axy.vlines(green, 0, stock.data["Volume"], color="g", alpha=0.7)
@@ -299,6 +309,9 @@ def usmarkets():
         ax2.set_xticks(tick)
         ax2.set_xticklabels(stock.data.loc[tick,"Date"].dt.strftime("%d/%m"))
         ax2.set_ylim([np.min(stock.data["Low"][150:])*0.9, np.max(stock.data["High"][150:])*1.05])
+        # strategy status
+        strat[0, i] = stock.data.iloc[-1]["Close"] > sma10.iloc[-1]
+        strat[1, i] = stock.data.iloc[-1]["Close"] > sma50.iloc[-1]
 
     # VIX
     ngss = gs[2,:].subgridspec(1,2, wspace=0.13, width_ratios=[0.91,2]) # subgridspec
@@ -322,7 +335,7 @@ def usmarkets():
     lab = "Change: " + str(change) + "%"
     axv.text(0.015, 0.94, "VIX volatility index", ha="left", va="top", transform=axv.transAxes, weight="bold")
     axv.text(0.015, 0.76, lab, ha="left", va="top", transform=axv.transAxes)
-
+    vstrat = stock.data.iloc[-1]["Close"] > 22
     # MOMENTUM PLOT
     # scrap momentum data
     # load the dataframe and compare the dates
@@ -373,9 +386,10 @@ def usmarkets():
     axmom2.bar(df.index, df["hldiff"], color=col, alpha=0.5, edgecolor=col)
     axmom2.grid(axis="y", linestyle="--")
     axmom2.set_xlim([-0.5, df.index[-1]+0.5])
-    axmom2.set_xticks(df.index)
-    axmom2.xaxis.set_tick_params(rotation=90)
-    axmom2.set_xticklabels(df["date"].dt.strftime("%d/%m"))
+    tick = np.linspace(df.index[0], df.index[-1], 15, dtype=int)
+    axmom2.set_xticks(tick)
+    axmom2.xaxis.set_tick_params(rotation=45)
+    axmom2.set_xticklabels(df.loc[tick,"date"].dt.strftime("%d/%m"))
     axmom2.text(0.01, 0.9, "New Highs - New Lows", ha="left", va="top", transform=axmom2.transAxes, weight="bold", 
         bbox=dict(facecolor="w", edgecolor="lightgray", pad=5))
     
@@ -388,10 +402,35 @@ def usmarkets():
     axs.text(0.01, 0.98, "Market Snapshot", ha="left", va="top", transform=axs.transAxes, weight="bold")
     # vix status
     axs.text(0.01, 0.80, "VIX:", ha="left", va="top", transform=axs.transAxes)
-    # NASDAQ, SPY, IWM
-    axs.text(0.01, 0.62, "SPY", ha="left", va="top", transform=axs.transAxes)
-    axs.text(0.01, 0.46, "NASDAQ", ha="left", va="top", transform=axs.transAxes)
-    axs.text(0.01, 0.28, "IWM", ha="left", va="top", transform=axs.transAxes)
+    if vstrat == 1:
+        axs.text(0.21, 0.80, "Elevated (>22)", ha="left", va="top", transform=axs.transAxes, color="r")
+    else:
+        axs.text(0.21, 0.80, "Safe (<22)", ha="left", va="top", transform=axs.transAxes, color="g")
+    # SPY
+    axs.text(0.01, 0.62, "SPY:", ha="left", va="top", transform=axs.transAxes)
+    if strat[:,0].sum() == 0:
+        axs.text(0.21, 0.62, "Protective (<SMA10, <SMA50)", ha="left", va="top", transform=axs.transAxes, color="r")
+    elif strat[:,0].sum() == 1:
+        axs.text(0.21, 0.62, "Defensive (>SMA10, <SMA50)", ha="left", va="top", transform=axs.transAxes, color="darkorange")
+    else:
+        axs.text(0.21, 0.62, "Aggresive (>SMA10, >SMA50)", ha="left", va="top", transform=axs.transAxes, color="g")
+    #NASDAQ
+    axs.text(0.01, 0.44, "NASDAQ:", ha="left", va="top", transform=axs.transAxes)
+    if strat[:,1].sum() == 0:
+        axs.text(0.21, 0.44, "Protective (<SMA10, <SMA50)", ha="left", va="top", transform=axs.transAxes, color="r")
+    elif strat[:,1].sum() == 1:
+        axs.text(0.21, 0.44, "Defensive (>SMA10, <SMA50)", ha="left", va="top", transform=axs.transAxes, color="darkorange")
+    else:
+        axs.text(0.21, 0.44, "Aggresive (>SMA10, >SMA50)", ha="left", va="top", transform=axs.transAxes, color="g")
+    # IWM
+    axs.text(0.01, 0.26, "IWM:", ha="left", va="top", transform=axs.transAxes)
+    if strat[:,2].sum() == 0:
+        axs.text(0.21, 0.26, "Protective (<SMA10, <SMA50)", ha="left", va="top", transform=axs.transAxes, color="r")
+    elif strat[:,2].sum() == 1:
+        axs.text(0.21, 0.26, "Defensive (>SMA10, <SMA50)", ha="left", va="top", transform=axs.transAxes, color="darkorange")
+    else:
+        axs.text(0.21, 0.26, "Aggresive (>SMA10, >SMA50)", ha="left", va="top", transform=axs.transAxes, color="g")
+
     plt.show()
 
 # scrap and print results from finviz screeners (tables)
