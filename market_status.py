@@ -430,7 +430,12 @@ def usmarkets():
         axs.text(0.21, 0.26, "Defensive (>SMA10, <SMA50)", ha="left", va="top", transform=axs.transAxes, color="darkorange")
     else:
         axs.text(0.21, 0.26, "Aggresive (>SMA10, >SMA50)", ha="left", va="top", transform=axs.transAxes, color="g")
-
+    # net lows
+    axs.text(0.01, 0.08, "NL/NH:", ha="left", va="top", transform=axs.transAxes)
+    if df["hldiff"].iloc[-1] < 0:
+        axs.text(0.21, 0.08, "Net 52w lows", ha="left", va="top", transform=axs.transAxes, color="r")
+    else:
+        axs.text(0.21, 0.08, "Net 52w highs", ha="left", va="top", transform=axs.transAxes, color="g")
     plt.show()
 
 # scrap and print results from finviz screeners (tables)
