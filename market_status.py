@@ -156,6 +156,28 @@ class industries():
             .set_properties(subset=["Name"], **{'width': '300px'})\
             .hide_index()
 
+    def prettify2(self, table):
+        # formats
+        def style_negative(v, props=''):
+            return np.where(v <= 0, props, None)
+        def style_positive(v, props=''):
+            return np.where(v > 0, props, None)
+        table = table.drop(columns=["Recom", "Avg Volume", "Volume", "Perf Quart", "Perf YTD", "Position"])
+        numcols = ["Perf Week", "Perf Month", "Perf Half", "Perf Year", "Change"]
+        # linkable rowname?
+        return table.style.format("{:.2f}", subset=numcols).apply(style_negative, props='color:red;', subset=numcols)\
+            .apply(style_positive, props='color:green;', subset=numcols)\
+            .set_table_attributes("style='display:inline'")\
+            .set_properties(subset=["Name"], **{'width': '300px'})\
+            .hide_index()
+
+    def volumechange(self):
+        # creates rank of 10 best industries performing according to relative volume * change
+        copy = self.table
+        copy["Volprice product"] = copy["Change"] * copy["Rel Volume"].astype("float64")
+        copy = copy.sort_values(by="Volprice product", ascending=False)
+        return copy.iloc[:10,:]
+
     def save(self):
         date = ind.shifttolastmarketday(dt.date.today())
         with pd.ExcelWriter("Data/industry_"+str(date.strftime("%Y"))+".xlsx", mode="a") as writer:
@@ -539,7 +561,7 @@ class futures():
         # possible future problem: index of correct javascript tag is hardcoded as 14, should think of something more future proof
         # this works for getting the data (27/11/2021)
         # changed to 13 (03/03/2022) - maybe go through the find_all and pass the longest string would solve it
-        stringmess = soup.find_all("script", type="text/javascript")[13].string  # this string holds the results + some trash around it
+        stringmess = soup.find_all("script", type="text/javascript")[11].string  # this string holds the results + some trash around it
         stringmess = stringmess.split("[")[1].split("]")[0] # extract the dictionary definition
         scrapedvals = pd.DataFrame(data=ast.literal_eval(stringmess)) # convert mess to dataframe
         scrapedvals = scrapedvals[scrapedvals["label"].isin(row)].reset_index(drop=True) #drop values Im not interested in
@@ -579,8 +601,8 @@ class futures():
 # ------------------------- testing / editing of functions and classes
 
 def main():
-    m = futures()
-    m.returnfutures()
+    m = industries()
+    m.volumechange()
     return
 
 if __name__ == '__main__':
