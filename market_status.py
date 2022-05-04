@@ -561,7 +561,7 @@ class futures():
         # possible future problem: index of correct javascript tag is hardcoded as 14, should think of something more future proof
         # this works for getting the data (27/11/2021)
         # changed to 13 (03/03/2022) - maybe go through the find_all and pass the longest string would solve it
-        stringmess = soup.find_all("script", type="text/javascript")[11].string  # this string holds the results + some trash around it
+        stringmess = soup.find_all("script", type="text/javascript")[16].string  # this string holds the results + some trash around it
         stringmess = stringmess.split("[")[1].split("]")[0] # extract the dictionary definition
         scrapedvals = pd.DataFrame(data=ast.literal_eval(stringmess)) # convert mess to dataframe
         scrapedvals = scrapedvals[scrapedvals["label"].isin(row)].reset_index(drop=True) #drop values Im not interested in
@@ -601,8 +601,8 @@ class futures():
 # ------------------------- testing / editing of functions and classes
 
 def main():
-    m = industries()
-    m.volumechange()
+    fut = futures().returnfutures()
+    
     return
 
 if __name__ == '__main__':
