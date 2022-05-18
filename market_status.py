@@ -542,7 +542,7 @@ class screeners():
         return soup
 
 # scrap and print commodity futures (table)
-class futures():
+class futures():    
     # to be implemented
     def save(self):
         return
@@ -601,7 +601,7 @@ class futures():
 # ------------------------- testing / editing of functions and classes
 
 def main():
-    fut = futures().returnfutures()
+    usmarkets()
     
     return
 
