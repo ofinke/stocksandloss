@@ -213,7 +213,7 @@ def worldmarkets():
         sector = stock_daily(val, save=False)
         # calculating performance
         df.loc[val, "Day"] = np.round((sector.data.loc[len(sector.data)-1, "Close"]/sector.data.loc[len(sector.data)-2, "Close"]-1)*100,2)
-        ytd =  np.where(sector.data["Date"].to_numpy() >= np.datetime64(dt.datetime(dt.datetime.today().year,1,1)))[0][0]
+        ytd =  np.where(sector.data["Date"].to_numpy() >= np.datetime64(dt.datetime(dt.datetime.today().year-1,1,1)))[0][0]
         df.loc[val,"YTD"] = np.round(((sector.data.loc[len(sector.data)-1, "Close"]/sector.data.loc[ytd, "Close"])-1)*100,2)
         df.loc[val,"MTD"] = np.round(((sector.data.loc[len(sector.data)-1, "Close"]/sector.data.loc[len(sector.data)-21, "Close"])-1)*100,2)
         
@@ -398,7 +398,7 @@ def usmarkets():
     axmom1.bar(df.index, df["advancing"], color="g", alpha=0.5, edgecolor="g")
     axmom1.bar(df.index, -df["declining"], color="r", alpha=0.5, edgecolor="r")
     axmom1.grid(axis="y", linestyle="--")
-    axmom1.set_xlim([-0.5, df.index[-1]+0.5])
+    axmom1.set_xlim([df.index[-1]+(rang[0]-rang[1])-0.5, df.index[-1]+0.5])
     axmom1.text(0.01, 0.9, "Advancing & Declining", ha="left", va="top", transform=axmom1.transAxes, weight="bold",
         bbox=dict(facecolor="w", edgecolor="lightgray", pad=5))
 
@@ -407,8 +407,8 @@ def usmarkets():
     col[np.where(df["hldiff"]<0)[0]] = "r"
     axmom2.bar(df.index, df["hldiff"], color=col, alpha=0.5, edgecolor=col)
     axmom2.grid(axis="y", linestyle="--")
-    axmom2.set_xlim([-0.5, df.index[-1]+0.5])
-    tick = np.linspace(df.index[0], df.index[-1], 15, dtype=int)
+    axmom2.set_xlim([df.index[df.index[-1]+(rang[0]-rang[1])]-0.5, df.index[-1]+0.5])
+    tick = np.linspace(df.index[df.index[-1]+(rang[0]-rang[1])], df.index[-1], 15, dtype=int)
     axmom2.set_xticks(tick)
     axmom2.xaxis.set_tick_params(rotation=45)
     axmom2.set_xticklabels(df.loc[tick,"date"].dt.strftime("%d/%m"))
